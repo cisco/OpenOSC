@@ -1,7 +1,10 @@
 TESTS = openosc_test openosc_test_chk openosc_test_nomap openosc_test_asan openosc_test_msan
 # test_harness takes longer time to complete, and openosc_fortify_test/openosc_test_cpp sometimes causes segmentation fault.
 #TESTS = openosc_test openosc_test_chk openosc_test_nomap openosc_test_asan openosc_test_msan openosc_test_cpp test_harness openosc_fortify_test
-check_PROGRAMS = openosc_test openosc_test_chk openosc_test_nomap openosc_test_asan openosc_test_msan test_harness openosc_fortify_test openosc_fortify_nomap_test openosc_test_cpp
+check_PROGRAMS = openosc_test openosc_test_chk openosc_test_nomap openosc_test_asan openosc_test_msan test_harness openosc_fortify_test openosc_fortify_nomap_test
+if OPENOSC_TEST_CXX_PROG
+check_PROGRAMS += openosc_test_cpp
+endif
 if OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK
 check_PROGRAMS += test_harness_break
 endif

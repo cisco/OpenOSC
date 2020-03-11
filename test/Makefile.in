@@ -84,9 +84,10 @@ check_PROGRAMS = openosc_test$(EXEEXT) openosc_test_chk$(EXEEXT) \
 	openosc_test_nomap$(EXEEXT) openosc_test_asan$(EXEEXT) \
 	openosc_test_msan$(EXEEXT) test_harness$(EXEEXT) \
 	openosc_fortify_test$(EXEEXT) \
-	openosc_fortify_nomap_test$(EXEEXT) openosc_test_cpp$(EXEEXT) \
-	$(am__EXEEXT_1)
-@OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK_TRUE@am__append_1 = test_harness_break
+	openosc_fortify_nomap_test$(EXEEXT) $(am__EXEEXT_1) \
+	$(am__EXEEXT_2)
+@OPENOSC_TEST_CXX_PROG_TRUE@am__append_1 = openosc_test_cpp
+@OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK_TRUE@am__append_2 = test_harness_break
 subdir = test
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/build-tools/depcomp \
@@ -99,7 +100,8 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK_TRUE@am__EXEEXT_1 = test_harness_break$(EXEEXT)
+@OPENOSC_TEST_CXX_PROG_TRUE@am__EXEEXT_1 = openosc_test_cpp$(EXEEXT)
+@OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK_TRUE@am__EXEEXT_2 = test_harness_break$(EXEEXT)
 am_openosc_fortify_nomap_test_OBJECTS =  \
 	openosc_fortify_nomap_test-openosc_fortify_test.$(OBJEXT)
 openosc_fortify_nomap_test_OBJECTS =  \

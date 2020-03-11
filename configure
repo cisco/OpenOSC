@@ -667,6 +667,8 @@ OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK_FALSE
 OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK_TRUE
 HAS_SAFEC_FALSE
 HAS_SAFEC_TRUE
+OPENOSC_TEST_CXX_PROG_FALSE
+OPENOSC_TEST_CXX_PROG_TRUE
 EGREP
 GREP
 CPP
@@ -5737,6 +5739,14 @@ _ACEOF
 fi
 
 done
+
+ if test "x$ac_cv_prog_cxx_g" = xyes; then
+  OPENOSC_TEST_CXX_PROG_TRUE=
+  OPENOSC_TEST_CXX_PROG_FALSE='#'
+else
+  OPENOSC_TEST_CXX_PROG_TRUE='#'
+  OPENOSC_TEST_CXX_PROG_FALSE=
+fi
 
  if test "x$ac_cv_lib_ciscosafec_memcpy_s" = xyes -a "x$ac_cv_header_safe_lib_h" = xyes -o "x$ac_cv_lib_ciscosafec_memcpy_s" = xyes -a "x$ac_cv_header_safec_safe_lib_h" = xyes; then
   HAS_SAFEC_TRUE=
@@ -16289,6 +16299,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${OPENOSC_TEST_CXX_PROG_TRUE}" && test -z "${OPENOSC_TEST_CXX_PROG_FALSE}"; then
+  as_fn_error $? "conditional \"OPENOSC_TEST_CXX_PROG\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${HAS_SAFEC_TRUE}" && test -z "${HAS_SAFEC_FALSE}"; then

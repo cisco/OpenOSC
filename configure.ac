@@ -10,6 +10,7 @@ AC_CHECK_LIB([dl], [dladdr])
 AC_CHECK_LIB([ciscosafec], [memcpy_s])
 AC_CHECK_HEADERS([safe_lib.h])
 AC_CHECK_HEADERS([safec/safe_lib.h])
+AM_CONDITIONAL([OPENOSC_TEST_CXX_PROG], [test "x$ac_cv_prog_cxx_g" = xyes])
 AM_CONDITIONAL([HAS_SAFEC], [test "x$ac_cv_lib_ciscosafec_memcpy_s" = xyes -a "x$ac_cv_header_safe_lib_h" = xyes -o "x$ac_cv_lib_ciscosafec_memcpy_s" = xyes -a "x$ac_cv_header_safec_safe_lib_h" = xyes])
 AM_CONDITIONAL([OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK], [test a = b])
 LT_INIT
