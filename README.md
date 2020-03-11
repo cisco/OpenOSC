@@ -25,7 +25,7 @@ Overview
 
 OpenOSC is an open-source object size check library written in C. It has been
 developed in order to promote the use of compiler builtin object size check
-capability for enhanced security. It provides lightweight support for detecting
+capability for enhanced security. It provides robust support for detecting
 buffer overflows in various functions that perform operations on memory and
 strings. Not all types of buffer overflows can be detected with this library,
 but it does provide an extra level of validation for some functions that are
@@ -93,6 +93,27 @@ tool to collect the OSC-METRICS:
 
     $ tools/oscmetrics.py -bmwv -d your-dir > metrics-report.txt
 
+It can generate a WatermarkPC decoding table as below:
+
+    ###################################################
+    OSC-METRIC WatermarkPC summary for all binary files
+    ## Note: DSTSIZE is format of: (dstsize, srcsize, copylen), (dstsize, copylen), or (dstsize).
+    ##       Copy-length of -9 means that the copy-length parameter
+    ##       for memcpy is unknown (non-constant) at compile-time.
+    ###################################################
+
+    FileIndex: 3 ./test/openosc_test_cpp
+    Idx   PC           OSCFUNC     CASE#  DSTSIZE     SRCFUNC                       SRCLINE
+    ---------------------------------------------------------------------------------------
+    0     0x400ce5     memcpy      CASE7  5,20,4      openosc_test_memcpy()         openosc_test_cpp.cpp:23
+    1     0x400de4     memcpy      CASE2  5,20,7      openosc_test_memcpy()         openosc_test_cpp.cpp:28
+    2     0x400e31     memcpy      CASE2  5,20,8      openosc_test_memcpy()         openosc_test_cpp.cpp:30
+    3     0x400ea3     memcpy      CASE3  5,20,-9     openosc_test_memcpy()         openosc_test_cpp.cpp:33
+    4     0x400f15     memcpy      CASE3  5,20,-9     openosc_test_memcpy()         openosc_test_cpp.cpp:34
+    5     0x400f8b     memcpy      CASE3  5,20,-9     openosc_test_memcpy()         openosc_test_cpp.cpp:36
+    6     0x400fdd     memcpy      CASE2  0,20,1      openosc_test_memcpy()         openosc_test_cpp.cpp:38
+    7     0x401049     memcpy      CASEa  -1,20,2     openosc_test_memcpy()         openosc_test_cpp.cpp:40
+
 One trick: To generate the binary even when buffer overflow errors exist, add
 `-DOPENOSC_OVERFLOW_ERROR_OUT_DISABLE` to CFLAGS. This will just print warnings
 instead of errors at compile-time so that binary can be generated. If you use
@@ -126,6 +147,17 @@ can be compiled with OpenOSC, and some other packages/binaries can be compiled
 with FORTIFY_SOURCE. They can co-exist on the same Linux system, and will be
 protected by different runtime libraries.
 
+Here is a comparison summary table:
+
+| Feature/Behavior  | FORTIFY_SOURCE |       OpenOSC       |
+| ----------------- | -------------- | ------------------- |
+| OSC Metrics       | No support     | Supported           |
+| Source Overread   | No support     | Supported           |
+| Traceback         | No traceback   | Print traceback     |
+| Abort behavior    | Always abort   | Configurable        |
+| Copy truncation   | No truncate    | Yes/Configurable    |
+| Logging           | No syslog      | Syslog/Configurable |
+| Cover new routine | Not easy       | Easy                |
 
 How to Build OpenOSC Library
 ----------------------------

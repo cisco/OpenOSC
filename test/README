@@ -1,0 +1,106 @@
+What is the BOSC Test Harness?
+
+    The BOSC Test Harness runs a series of tests to demonstrate the
+    buffer-size measuring capabilities of a compiler's Built-in
+    Object Size Check (BOSC).  BOSC prevents standard functions from
+    writing outside passed-in buffers by first determining the size
+    of the buffer when possible.  BOSC implementations vary on their
+    ability to determine buffer size.  The tests cover a variety of
+    situations where buffers can be encountered.
+
+    The test harness can be used to verify that new versions of
+    compilers don't have regressions or to test for feature parity
+    between a newly-created implementation and an existing
+    implementation.
+
+Intended Product Family
+
+    Any product that uses BOSC.
+
+Intended Audience
+
+    Any engineer who works on the infrastructure of a product and wants
+    to test the coverage of their BOSC implementation can use
+    the BOSC test harness.  An engineer may find understanding how the
+    compiler interacts with the product to be helpful, but such
+    knowledge is not necessary.
+
+Deliverables
+
+    N/A
+
+How-to Guide
+
+    The test harness is a collection of buffer size tests that is
+    intended to be compiled with the target compiler. The test harness
+    also test the effectiveness and correctness of BOSC remap header file
+    for both compile time and runtime detection of buffer overflow.
+
+    The test harness requires libc, libpthread, libciscoosc and libciscosafec
+    so make sure these libraries are available in your build enviroment before
+    building the test harness. Below are steps to get these libraries setup for
+    building the test harness.
+
+    libc and libpthread should be in standard tool chain locations. SYSROOT
+    variable in ../pre.mk file can be set to point to tool chain specific
+    location if needed.
+
+    libciscoosc can be built by running make at the top level directory
+    of the library source tree. The test harness' Makefile assumes
+    libciscoosc.so is one level up in the directory structure.
+
+    libciscosafec can be built from CSM source code located at:
+    https://cisco.jiveon.com/groups/common-security-modules/projects/ciscosafec
+    Header files and shared library for safeC, if not in standard locations,
+    can be specified with SAFEC_INC_PATH and SAFEC_LIB_PATH in ../pre.mk file.
+    BOSC checker for safeC can be disabled by setting HAS_SAFEC to FALSE in
+    ../pre.mk
+
+    To test a compiler, update CC and SYSROOT in ../pre.mk file. Then run
+    "make all" from the top level directory of the library. This will build
+    libciscoosc.so and placed it in the current directory and test_harness
+    executable under test directory.
+
+    Test harness can be ran manually by first setting LD_LIBRARY_PATH to
+    point to the location of libciscoosc and libciscosafec and then execute
+    test_harness binary. 
+       export LD_LIBRARY_PATH=../:<safeC_lib_path>
+       ./test_harness > test_harness.result 2>&1
+
+    Test harness can be also be built and ran automatically under test directory:
+       make run_test_harness
+
+    Test results are stored in test_harness.result.
+
+    Run "make break" to test the compile time checking.  Note that this
+    should typically fail to build and, instead, print an error
+    indicating that there will always be a buffer overflow.
+
+
+Limitations
+    
+    Not all these tests should carry equal weight when
+    comparing BOSC implementations.  For example, the test
+    'STRUCT_PTR_STRUCT_CHAR_SIZE' can account for a large number of
+    instances in practice (see EDCS-865445.)
+
+Resources and Schedule Implications
+
+    N/A
+
+Performance Characteristics
+
+    N/A
+
+Deployments
+
+    N/A
+
+References
+
+    EDCS-636385
+        - CSDL 4arg Implementation Guide
+    EDCS-865445
+        - BOSC vs. 4arg
+    http://gcc.gnu.org/onlinedocs/gcc/Object-Size-Checking.html
+        - GCC object size checking

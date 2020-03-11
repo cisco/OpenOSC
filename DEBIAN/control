@@ -1,0 +1,17 @@
+Source: openosc
+Section: libs
+Priority: standard
+Maintainer: Yongkui Han <yonhan@cisco.com>
+Build-Depends: build-essential, debhelper (>= 9)
+
+Package: openosc
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: OpenOSC package
+ OpenOSC is an open-source object size check library written in C. It has been
+ developed in order to promote the use of compiler builtin object size check
+ capability for enhanced security. It provides lightweight support for detecting
+ buffer overflows in various functions that perform operations on memory and
+ strings. Not all types of buffer overflows can be detected with this library,
+ but it does provide an extra level of validation for some functions that are
+ potentially a source of buffer overflow flaws. It protects both C and C++ code.

@@ -1,0 +1,8 @@
+# This is README for the customized-subdirs file, provided via -c option.
+#
+# It shall contain a list of customized sub-directories to search, in order
+# to find binary files or shared library files to decode OSC/DCDI tracebacks.
+#
+# Put your subdir here, one subdir per line, like var/sf
+# Empty lines and lines that start with '#' will be ignored.
+

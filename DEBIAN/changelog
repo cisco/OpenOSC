@@ -1,0 +1,5 @@
+openosc (PACKAGE_VERSION-1) sid; urgency=medium
+
+  * Initial packaging work for OpenOSC with dpkg-buildpackage.
+
+ -- Yongkui Han <yonhan@cisco.com>  Mon, 10 Dec 2018 06:12:29 +0000

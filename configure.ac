@@ -1,0 +1,27 @@
+AC_PREREQ([2.69])
+AC_INIT([openosc], [m4_esyscmd_s(cat VERSION)], [yonhan@cisco.com])
+AC_CONFIG_AUX_DIR([build-tools])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_PROG_AR
+AC_PROG_CC
+AC_PROG_CXX
+AM_PROG_CC_C_O
+AC_CHECK_LIB([dl], [dladdr])
+AC_CHECK_LIB([ciscosafec], [memcpy_s])
+AC_CHECK_HEADERS([safe_lib.h])
+AC_CHECK_HEADERS([safec/safe_lib.h])
+AM_CONDITIONAL([HAS_SAFEC], [test "x$ac_cv_lib_ciscosafec_memcpy_s" = xyes -a "x$ac_cv_header_safe_lib_h" = xyes -o "x$ac_cv_lib_ciscosafec_memcpy_s" = xyes -a "x$ac_cv_header_safec_safe_lib_h" = xyes])
+AM_CONDITIONAL([OPENOSC_TEST_HARNESS_WANT_COMPILE_TIME_CHECK], [test a = b])
+LT_INIT
+LT_VERSION_NUMBER="0:0:0"
+AC_SUBST(LT_VERSION_NUMBER)
+#AC_SUBST(OPENOSC_CFLAGS, [-fsanitize=address])
+AC_SUBST(OPENOSC_CFLAGS, ["-Wsign-compare -U_FORTIFY_SOURCE -fno-stack-protector"])
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([
+ Makefile
+ src/Makefile
+ test/Makefile
+ tools/Makefile
+])
+AC_OUTPUT
