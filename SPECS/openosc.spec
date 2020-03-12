@@ -9,6 +9,7 @@ URL:            https://github.com/cisco/openosc
 Source0:        %{name}-%{version}.tar.gz
 
 BuildRequires:  make
+BuildRequires:  gcc
 
 %description
 OpenOSC is an open-source object size check library written in C. It has been
