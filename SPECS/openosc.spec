@@ -8,13 +8,13 @@ License:        ASL 2.0
 URL:            https://github.com/cisco/openosc
 Source0:        %{name}-%{version}.tar.gz
 
-BuildRequires:  make
 BuildRequires:  gcc
+BuildRequires:  make
 
 %description
 OpenOSC is an open-source object size check library written in C. It has been
 developed in order to promote the use of compiler builtin object size check
-capability for enhanced security. It provides lightweight support for detecting
+capability for enhanced security. It provides robust support for detecting
 buffer overflows in various functions that perform operations on memory and
 strings. Not all types of buffer overflows can be detected with this library,
 but it does provide an extra level of validation for some functions that are
@@ -40,6 +40,7 @@ collect OSC metrics.
 %package static
 Summary: The OpenOSC static library package
 Group: Development/Libraries
+Requires: openosc-devel = %{version}-%{release}
 
 %description static
 OpenOSC static package, containing the static library.
@@ -54,7 +55,6 @@ make %{?_smp_mflags}
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
 %make_install
 
 
