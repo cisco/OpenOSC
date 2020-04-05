@@ -7,3 +7,6 @@ endif
 libopenosc_la_CFLAGS = $(OPENOSC_CFLAGS)
 libopenosc_la_LDFLAGS = -version-info $(LT_VERSION_NUMBER) --allow-shlib-undefined
 include_HEADERS = $(top_srcdir)/include/*.h
+
+install-exec-hook:
+	cd $(DESTDIR)$(libdir) && rm $(lib_LTLIBRARIES)

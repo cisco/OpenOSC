@@ -24,7 +24,7 @@ potentially a source of buffer overflow flaws. It protects both C and C++ code.
 %package devel
 Summary: The OpenOSC development package
 Group: Development/Libraries
-Requires:  openosc = %{version}-%{release}
+Requires:  openosc%{?_isa} = %{version}-%{release}
 
 %description devel
 OpenOSC development package, containing both header files and runtime library.
@@ -46,7 +46,7 @@ Requires: openosc-devel = %{version}-%{release}
 OpenOSC static package, containing the static library.
 
 %prep
-%setup -q
+%autosetup -n openosc-%{version}
 
 
 %build
@@ -59,7 +59,7 @@ make %{?_smp_mflags}
 
 
 %files
-%{_libdir}/lib*.so.*
+%{_libdir}/lib*.so.0*
 
 %files devel
 %{_libdir}/lib*.so
@@ -71,7 +71,6 @@ make %{?_smp_mflags}
 
 %files static
 %{_libdir}/lib*.a
-%{_libdir}/lib*.la
 
 
 %changelog
