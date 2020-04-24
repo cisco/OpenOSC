@@ -63,6 +63,8 @@ struct sockaddr;
 # define _SIGSET_H_types        1
 #endif
 
+typedef int __sig_atomic_t;
+
 /* A `sigset_t' has a bit for each signal.  */
 
 # define _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))

@@ -688,7 +688,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
+uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES \
+	uninstall-local
 
 .MAKE: install-am install-exec-am install-strip
 
@@ -706,11 +707,14 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-includeHEADERS \
-	uninstall-libLTLIBRARIES
+	uninstall-libLTLIBRARIES uninstall-local
 
 
 install-exec-hook:
 	cd $(DESTDIR)$(libdir) && rm $(lib_LTLIBRARIES)
+
+uninstall-local:
+	cd $(DESTDIR)$(libdir) && rm libopenosc.a libopenosc.so*
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

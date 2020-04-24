@@ -10,3 +10,6 @@ include_HEADERS = $(top_srcdir)/include/*.h
 
 install-exec-hook:
 	cd $(DESTDIR)$(libdir) && rm $(lib_LTLIBRARIES)
+
+uninstall-local:
+	cd $(DESTDIR)$(libdir) && rm libopenosc.a libopenosc.so*
