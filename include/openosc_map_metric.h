@@ -24,8 +24,6 @@ long long int __attribute__((weak)) rtd_osc_map_h_included_int = MAGIC_OSC_MAP_H
 
 #ifdef OPENOSC_METRIC_FEATURE_ENABLED
 
-#if (RTD_OSC_METRIC_METHOD == RTD_ASM_BYTE_METHOD)
-
 #include "openosc_metric_objsize.h"
 
 #ifndef OPENOSC_COPYLEN_NON_CONST_MAGIC
@@ -38,6 +36,80 @@ long long int __attribute__((weak)) rtd_osc_map_h_included_int = MAGIC_OSC_MAP_H
 #else
 #define OPENOSC_METRIC_COPYLEN(is_len_constant, len)  len
 #endif
+
+#if (RTD_OSC_METRIC_METHOD == RTD_ASM_LOC_METHOD)
+
+#define MEMCPY_MAGIC1           ".loc 1 8388865"
+#define MEMCPY_MAGIC2           ".loc 1 8388866"
+#define MEMCPY_MAGIC3           ".loc 1 8388867"
+#define MEMCPY_MAGIC4           ".loc 1 8388868"
+#define MEMCPY_MAGIC7           ".loc 1 8388871"
+#define MEMCPY_MAGIC8           ".loc 1 8388872"
+#define MEMCPY_MAGIC9           ".loc 1 8388873"
+#define MEMCPY_MAGICa           ".loc 1 8388874"
+#define MEMCPY_MAGICb           ".loc 1 8388875"
+
+#define MEMMOVE_MAGIC1          ".loc 1 8388881"
+#define MEMMOVE_MAGIC2          ".loc 1 8388882"
+#define MEMMOVE_MAGIC3          ".loc 1 8388883"
+#define MEMMOVE_MAGIC4          ".loc 1 8388884"
+#define MEMMOVE_MAGIC7          ".loc 1 8388887"
+#define MEMMOVE_MAGIC8          ".loc 1 8388888"
+#define MEMMOVE_MAGIC9          ".loc 1 8388889"
+#define MEMMOVE_MAGICa          ".loc 1 8388890"
+#define MEMMOVE_MAGICb          ".loc 1 8388891"
+
+#define MEMSET_MAGIC1           ".loc 1 8388897"
+#define MEMSET_MAGIC2           ".loc 1 8388898"
+#define MEMSET_MAGIC3           ".loc 1 8388899"
+#define MEMSET_MAGIC4           ".loc 1 8388900"
+
+#define BCOPY_MAGIC1            ".loc 1 8388913"
+#define BCOPY_MAGIC2            ".loc 1 8388914"
+#define BCOPY_MAGIC3            ".loc 1 8388915"
+#define BCOPY_MAGIC4            ".loc 1 8388916"
+#define BCOPY_MAGIC7            ".loc 1 8388919"
+#define BCOPY_MAGIC8            ".loc 1 8388920"
+#define BCOPY_MAGIC9            ".loc 1 8388921"
+#define BCOPY_MAGICa            ".loc 1 8388922"
+#define BCOPY_MAGICb            ".loc 1 8388923"
+
+#define BZERO_MAGIC1            ".loc 1 8388929"
+#define BZERO_MAGIC2            ".loc 1 8388930"
+#define BZERO_MAGIC3            ".loc 1 8388931"
+#define BZERO_MAGIC4            ".loc 1 8388932"
+
+#define STRCPY_MAGIC1           ".loc 1 8388945"
+#define STRCPY_MAGIC2           ".loc 1 8388946"
+#define STRCPY_MAGIC3           ".loc 1 8388947"
+#define STRCPY_MAGIC4           ".loc 1 8388948"
+
+#define STRNCPY_MAGIC1          ".loc 1 8388961"
+#define STRNCPY_MAGIC2          ".loc 1 8388962"
+#define STRNCPY_MAGIC3          ".loc 1 8388963"
+#define STRNCPY_MAGIC4          ".loc 1 8388964"
+
+#define STRCAT_MAGIC1           ".loc 1 8388977"
+#define STRCAT_MAGIC2           ".loc 1 8388978"
+#define STRCAT_MAGIC3           ".loc 1 8388979"
+#define STRCAT_MAGIC4           ".loc 1 8388980"
+
+#define STRNCAT_MAGIC1          ".loc 1 8388993"
+#define STRNCAT_MAGIC2          ".loc 1 8388994"
+#define STRNCAT_MAGIC3          ".loc 1 8388995"
+#define STRNCAT_MAGIC4          ".loc 1 8388996"
+
+#define STRNLEN_MAGIC1          ".loc 1 8389009"
+#define STRNLEN_MAGIC2          ".loc 1 8389010"
+#define STRNLEN_MAGIC3          ".loc 1 8389011"
+#define STRNLEN_MAGIC4          ".loc 1 8389012"
+
+#define VSNPRINTF_MAGIC1                ".loc 1 8389025"
+#define VSNPRINTF_MAGIC2                ".loc 1 8389026"
+#define VSNPRINTF_MAGIC3                ".loc 1 8389027"
+#define VSNPRINTF_MAGIC4                ".loc 1 8389028"
+
+#elif (RTD_OSC_METRIC_METHOD == RTD_ASM_BYTE_METHOD)
 
 #define MEMCPY_MAGIC1  OSC_JUMPOVER ".byte 0x4d, 0x41, 0x47, 0x49, 0x43, 0xd0, 0xaa, 0x11\n" OSC_JUMPLABEL
 #define MEMCPY_MAGIC2  OSC_JUMPOVER ".byte 0x4d, 0x41, 0x47, 0x49, 0x43, 0xd0, 0xaa, 0x22\n" OSC_JUMPLABEL
@@ -109,6 +181,8 @@ long long int __attribute__((weak)) rtd_osc_map_h_included_int = MAGIC_OSC_MAP_H
 #define VSNPRINTF_MAGIC3 OSC_JUMPOVER ".byte 0x4d, 0x41, 0x47, 0x49, 0x43, 0xd0, 0x99, 0x33\n" OSC_JUMPLABEL
 #define VSNPRINTF_MAGIC4 OSC_JUMPOVER ".byte 0x4d, 0x41, 0x47, 0x49, 0x43, 0xd0, 0x99, 0x44\n" OSC_JUMPLABEL
 
+#endif
+
 #define MEMCPY_CASE1                    ({__asm__(MEMCPY_MAGIC1);}), OSC_DST_SRC_LEN_SIZE(_sz, _src_sz, OPENOSC_METRIC_COPYLEN(is_len_constant, len))
 #define MEMCPY_CASE2                    ({__asm__(MEMCPY_MAGIC2);}), OSC_DST_SRC_LEN_SIZE(_sz, _src_sz, OPENOSC_METRIC_COPYLEN(is_len_constant, len))
 #define MEMCPY_CASE3                    ({__asm__(MEMCPY_MAGIC3);}), OSC_DST_SRC_LEN_SIZE(_sz, _src_sz, OPENOSC_METRIC_COPYLEN(is_len_constant, len))
@@ -169,197 +243,6 @@ long long int __attribute__((weak)) rtd_osc_map_h_included_int = MAGIC_OSC_MAP_H
 #define VSNPRINTF_CASE3                 ({__asm__(VSNPRINTF_MAGIC3);}), OSC_DSTSIZE(_sz)
 #define VSNPRINTF_CASE4                 ({__asm__(VSNPRINTF_MAGIC4);}), OSC_DSTSIZE(_sz)
 
-#else   /* OSC_METRIC_METHOD == ASM_BYTE_METHOD */
-
-long long int __attribute__((weak)) rtd_osc_map_int = 0;
-
-#if defined __BIG_ENDIAN__ || defined __BIG_ENDIAN || (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-
-#define MEMCPY_MAGIC1                    0x4d41474943d0aa11
-#define MEMCPY_MAGIC2                    0x4d41474943d0aa22
-#define MEMCPY_MAGIC3                    0x4d41474943d0aa33
-#define MEMCPY_MAGIC4                    0x4d41474943d0aa44
-#define MEMCPY_MAGIC7                    0x4d41474943d0aa77
-#define MEMCPY_MAGIC8                    0x4d41474943d0aa88
-#define MEMCPY_MAGIC9                    0x4d41474943d0aa99
-#define MEMCPY_MAGICa                    0x4d41474943d0aaaa
-#define MEMCPY_MAGICb                    0x4d41474943d0aabb
-#define MEMMOVE_MAGIC1                   0x4d41474943d00011
-#define MEMMOVE_MAGIC2                   0x4d41474943d00022
-#define MEMMOVE_MAGIC3                   0x4d41474943d00033
-#define MEMMOVE_MAGIC4                   0x4d41474943d00044
-#define MEMMOVE_MAGIC7                   0x4d41474943d00077
-#define MEMMOVE_MAGIC8                   0x4d41474943d00088
-#define MEMMOVE_MAGIC9                   0x4d41474943d00099
-#define MEMMOVE_MAGICa                   0x4d41474943d000aa
-#define MEMMOVE_MAGICb                   0x4d41474943d000bb
-#define MEMSET_MAGIC1                    0x4d41474943d01111
-#define MEMSET_MAGIC2                    0x4d41474943d01122
-#define MEMSET_MAGIC3                    0x4d41474943d01133
-#define MEMSET_MAGIC4                    0x4d41474943d01144
-#define BCOPY_MAGIC1                     0x4d41474943d02211
-#define BCOPY_MAGIC2                     0x4d41474943d02222
-#define BCOPY_MAGIC3                     0x4d41474943d02233
-#define BCOPY_MAGIC4                     0x4d41474943d02244
-#define BCOPY_MAGIC7                     0x4d41474943d02277
-#define BCOPY_MAGIC8                     0x4d41474943d02288
-#define BCOPY_MAGIC9                     0x4d41474943d02299
-#define BCOPY_MAGICa                     0x4d41474943d022aa
-#define BCOPY_MAGICb                     0x4d41474943d022bb
-#define BZERO_MAGIC1                     0x4d41474943d03311
-#define BZERO_MAGIC2                     0x4d41474943d03322
-#define BZERO_MAGIC3                     0x4d41474943d03333
-#define BZERO_MAGIC4                     0x4d41474943d03344
-#define STRCPY_MAGIC1                    0x4d41474943d04411
-#define STRCPY_MAGIC2                    0x4d41474943d04422
-#define STRCPY_MAGIC3                    0x4d41474943d04433
-#define STRCPY_MAGIC4                    0x4d41474943d04444
-#define STRNCPY_MAGIC1                   0x4d41474943d05511
-#define STRNCPY_MAGIC2                   0x4d41474943d05522
-#define STRNCPY_MAGIC3                   0x4d41474943d05533
-#define STRNCPY_MAGIC4                   0x4d41474943d05544
-#define STRCAT_MAGIC1                    0x4d41474943d06611
-#define STRCAT_MAGIC2                    0x4d41474943d06622
-#define STRCAT_MAGIC3                    0x4d41474943d06633
-#define STRCAT_MAGIC4                    0x4d41474943d06644
-#define STRNCAT_MAGIC1                   0x4d41474943d07711
-#define STRNCAT_MAGIC2                   0x4d41474943d07722
-#define STRNCAT_MAGIC3                   0x4d41474943d07733
-#define STRNCAT_MAGIC4                   0x4d41474943d07744
-#define STRNLEN_MAGIC1                   0x4d41474943d08811
-#define STRNLEN_MAGIC2                   0x4d41474943d08822
-#define STRNLEN_MAGIC3                   0x4d41474943d08833
-#define STRNLEN_MAGIC4                   0x4d41474943d08844
-#define VSNPRINTF_MAGIC1                 0x4d41474943d09911
-#define VSNPRINTF_MAGIC2                 0x4d41474943d09922
-#define VSNPRINTF_MAGIC3                 0x4d41474943d09933
-#define VSNPRINTF_MAGIC4                 0x4d41474943d09944
-
-#else   /* defined __BIG_ENDIAN__ || defined __BIG_ENDIAN */
-
-#define MEMCPY_MAGIC1                    0x11aad0434947414d
-#define MEMCPY_MAGIC2                    0x22aad0434947414d
-#define MEMCPY_MAGIC3                    0x33aad0434947414d
-#define MEMCPY_MAGIC4                    0x44aad0434947414d
-#define MEMCPY_MAGIC7                    0x77aad0434947414d
-#define MEMCPY_MAGIC8                    0x88aad0434947414d
-#define MEMCPY_MAGIC9                    0x99aad0434947414d
-#define MEMCPY_MAGICa                    0xaaaad0434947414d
-#define MEMCPY_MAGICb                    0xbbaad0434947414d
-#define MEMMOVE_MAGIC1                   0x1100d0434947414d
-#define MEMMOVE_MAGIC2                   0x2200d0434947414d
-#define MEMMOVE_MAGIC3                   0x3300d0434947414d
-#define MEMMOVE_MAGIC4                   0x4400d0434947414d
-#define MEMMOVE_MAGIC7                   0x7700d0434947414d
-#define MEMMOVE_MAGIC8                   0x8800d0434947414d
-#define MEMMOVE_MAGIC9                   0x9900d0434947414d
-#define MEMMOVE_MAGICa                   0xaa00d0434947414d
-#define MEMMOVE_MAGICb                   0xbb00d0434947414d
-#define MEMSET_MAGIC1                    0x1111d0434947414d
-#define MEMSET_MAGIC2                    0x2211d0434947414d
-#define MEMSET_MAGIC3                    0x3311d0434947414d
-#define MEMSET_MAGIC4                    0x4411d0434947414d
-#define BCOPY_MAGIC1                     0x1122d0434947414d
-#define BCOPY_MAGIC2                     0x2222d0434947414d
-#define BCOPY_MAGIC3                     0x3322d0434947414d
-#define BCOPY_MAGIC4                     0x4422d0434947414d
-#define BCOPY_MAGIC7                     0x7722d0434947414d
-#define BCOPY_MAGIC8                     0x8822d0434947414d
-#define BCOPY_MAGIC9                     0x9922d0434947414d
-#define BCOPY_MAGICa                     0xaa22d0434947414d
-#define BCOPY_MAGICb                     0xbb22d0434947414d
-#define BZERO_MAGIC1                     0x1133d0434947414d
-#define BZERO_MAGIC2                     0x2233d0434947414d
-#define BZERO_MAGIC3                     0x3333d0434947414d
-#define BZERO_MAGIC4                     0x4433d0434947414d
-#define STRCPY_MAGIC1                    0x1144d0434947414d
-#define STRCPY_MAGIC2                    0x2244d0434947414d
-#define STRCPY_MAGIC3                    0x3344d0434947414d
-#define STRCPY_MAGIC4                    0x4444d0434947414d
-#define STRNCPY_MAGIC1                   0x1155d0434947414d
-#define STRNCPY_MAGIC2                   0x2255d0434947414d
-#define STRNCPY_MAGIC3                   0x3355d0434947414d
-#define STRNCPY_MAGIC4                   0x4455d0434947414d
-#define STRCAT_MAGIC1                    0x1166d0434947414d
-#define STRCAT_MAGIC2                    0x2266d0434947414d
-#define STRCAT_MAGIC3                    0x3366d0434947414d
-#define STRCAT_MAGIC4                    0x4466d0434947414d
-#define STRNCAT_MAGIC1                   0x1177d0434947414d
-#define STRNCAT_MAGIC2                   0x2277d0434947414d
-#define STRNCAT_MAGIC3                   0x3377d0434947414d
-#define STRNCAT_MAGIC4                   0x4477d0434947414d
-#define STRNLEN_MAGIC1                   0x1188d0434947414d
-#define STRNLEN_MAGIC2                   0x2288d0434947414d
-#define STRNLEN_MAGIC3                   0x3388d0434947414d
-#define STRNLEN_MAGIC4                   0x4488d0434947414d
-#define VSNPRINTF_MAGIC1                 0x1199d0434947414d
-#define VSNPRINTF_MAGIC2                 0x2299d0434947414d
-#define VSNPRINTF_MAGIC3                 0x3399d0434947414d
-#define VSNPRINTF_MAGIC4                 0x4499d0434947414d
-
-#endif  /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
-
-#define MEMCPY_CASE1                    rtd_osc_map_int = MEMCPY_MAGIC1,
-#define MEMCPY_CASE2                    rtd_osc_map_int = MEMCPY_MAGIC2,
-#define MEMCPY_CASE3                    rtd_osc_map_int = MEMCPY_MAGIC3,
-#define MEMCPY_CASE4                    rtd_osc_map_int = MEMCPY_MAGIC4,
-#define MEMCPY_CASE7                    rtd_osc_map_int = MEMCPY_MAGIC7,
-#define MEMCPY_CASE8                    rtd_osc_map_int = MEMCPY_MAGIC8,
-#define MEMCPY_CASE9                    rtd_osc_map_int = MEMCPY_MAGIC9,
-#define MEMCPY_CASEa                    rtd_osc_map_int = MEMCPY_MAGICa,
-#define MEMCPY_CASEb                    rtd_osc_map_int = MEMCPY_MAGICb,
-#define MEMMOVE_CASE1                   rtd_osc_map_int = MEMMOVE_MAGIC1,
-#define MEMMOVE_CASE2                   rtd_osc_map_int = MEMMOVE_MAGIC2,
-#define MEMMOVE_CASE3                   rtd_osc_map_int = MEMMOVE_MAGIC3,
-#define MEMMOVE_CASE4                   rtd_osc_map_int = MEMMOVE_MAGIC4,
-#define MEMMOVE_CASE7                   rtd_osc_map_int = MEMMOVE_MAGIC7,
-#define MEMMOVE_CASE8                   rtd_osc_map_int = MEMMOVE_MAGIC8,
-#define MEMMOVE_CASE9                   rtd_osc_map_int = MEMMOVE_MAGIC9,
-#define MEMMOVE_CASEa                   rtd_osc_map_int = MEMMOVE_MAGICa,
-#define MEMMOVE_CASEb                   rtd_osc_map_int = MEMMOVE_MAGICb,
-#define MEMSET_CASE1                    rtd_osc_map_int = MEMSET_MAGIC1,
-#define MEMSET_CASE2                    rtd_osc_map_int = MEMSET_MAGIC2,
-#define MEMSET_CASE3                    rtd_osc_map_int = MEMSET_MAGIC3,
-#define MEMSET_CASE4                    rtd_osc_map_int = MEMSET_MAGIC4,
-#define BCOPY_CASE1                     rtd_osc_map_int = BCOPY_MAGIC1,
-#define BCOPY_CASE2                     rtd_osc_map_int = BCOPY_MAGIC2,
-#define BCOPY_CASE3                     rtd_osc_map_int = BCOPY_MAGIC3,
-#define BCOPY_CASE4                     rtd_osc_map_int = BCOPY_MAGIC4,
-#define BCOPY_CASE7                     rtd_osc_map_int = BCOPY_MAGIC7,
-#define BCOPY_CASE8                     rtd_osc_map_int = BCOPY_MAGIC8,
-#define BCOPY_CASE9                     rtd_osc_map_int = BCOPY_MAGIC9,
-#define BCOPY_CASEa                     rtd_osc_map_int = BCOPY_MAGICa,
-#define BCOPY_CASEb                     rtd_osc_map_int = BCOPY_MAGICb,
-#define BZERO_CASE1                     rtd_osc_map_int = BZERO_MAGIC1,
-#define BZERO_CASE2                     rtd_osc_map_int = BZERO_MAGIC2,
-#define BZERO_CASE3                     rtd_osc_map_int = BZERO_MAGIC3,
-#define BZERO_CASE4                     rtd_osc_map_int = BZERO_MAGIC4,
-#define STRCPY_CASE1                    rtd_osc_map_int = STRCPY_MAGIC1,
-#define STRCPY_CASE2                    rtd_osc_map_int = STRCPY_MAGIC2,
-#define STRCPY_CASE3                    rtd_osc_map_int = STRCPY_MAGIC3,
-#define STRCPY_CASE4                    rtd_osc_map_int = STRCPY_MAGIC4,
-#define STRNCPY_CASE1                   rtd_osc_map_int = STRNCPY_MAGIC1,
-#define STRNCPY_CASE2                   rtd_osc_map_int = STRNCPY_MAGIC2,
-#define STRNCPY_CASE3                   rtd_osc_map_int = STRNCPY_MAGIC3,
-#define STRNCPY_CASE4                   rtd_osc_map_int = STRNCPY_MAGIC4,
-#define STRCAT_CASE1                    rtd_osc_map_int = STRCAT_MAGIC1,
-#define STRCAT_CASE2                    rtd_osc_map_int = STRCAT_MAGIC2,
-#define STRCAT_CASE3                    rtd_osc_map_int = STRCAT_MAGIC3,
-#define STRCAT_CASE4                    rtd_osc_map_int = STRCAT_MAGIC4,
-#define STRNCAT_CASE1                   rtd_osc_map_int = STRNCAT_MAGIC1,
-#define STRNCAT_CASE2                   rtd_osc_map_int = STRNCAT_MAGIC2,
-#define STRNCAT_CASE3                   rtd_osc_map_int = STRNCAT_MAGIC3,
-#define STRNCAT_CASE4                   rtd_osc_map_int = STRNCAT_MAGIC4,
-#define STRNLEN_CASE1                   rtd_osc_map_int = STRNLEN_MAGIC1,
-#define STRNLEN_CASE2                   rtd_osc_map_int = STRNLEN_MAGIC2,
-#define STRNLEN_CASE3                   rtd_osc_map_int = STRNLEN_MAGIC3,
-#define STRNLEN_CASE4                   rtd_osc_map_int = STRNLEN_MAGIC4,
-#define VSNPRINTF_CASE1                 rtd_osc_map_int = VSNPRINTF_MAGIC1,
-#define VSNPRINTF_CASE2                 rtd_osc_map_int = VSNPRINTF_MAGIC2,
-#define VSNPRINTF_CASE3                 rtd_osc_map_int = VSNPRINTF_MAGIC3,
-#define VSNPRINTF_CASE4                 rtd_osc_map_int = VSNPRINTF_MAGIC4,
-
-#endif    /* OSC_METRIC_METHOD == ASM_BYTE_METHOD */
 
 #else   /* OPENOSC_METRIC_FEATURE_ENABLED */
 

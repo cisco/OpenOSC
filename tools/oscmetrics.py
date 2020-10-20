@@ -31,7 +31,7 @@ try:
 except ImportError:
     from pipes import quote as cmd_quote
 
-TOOL_VERSION = '1.0.0'
+TOOL_VERSION = '1.0.1'
 VERSION = '%(prog)s ' + TOOL_VERSION
 HDR1 = "==================================================="
 HDR2 = "###################################################"
@@ -54,6 +54,625 @@ g_configs = dict()
 g_objdump_prog = 'objdump'
 g_addr2line_prog = 'addr2line'
 g_readelf_prog = 'readelf'
+
+# The magics array to be used to collect the OSC-Metrics.
+# if magic_type is dwarf_loc, then it is loc_all_magics;
+# if magic_type is byte_inline, then it is water_all_magics.
+g_all_magics = dict()
+
+# the magics array for dwarf_loc method
+loc_all_magics = {
+    'FILEMAGICS': {
+        '80818d8e80818d8e': 'MAGIC_OSC_HEADER_INCLUDED',
+        '80818d8e80818d8f': 'MAGIC_OSC_NOMAP_H_INCLUDED',
+        '80818d8e80818d01': 'MAGIC_OSC_NOMAP_H_REASON_NOOPTIMIZE',
+        '80818d8e80818d02': 'MAGIC_OSC_NOMAP_H_REASON_NOINLINE',
+        '80818d8e80818d03': 'MAGIC_OSC_NOMAP_H_REASON_FORTIFY_SOURCE',
+        '80818d8e80818d04': 'MAGIC_OSC_NOMAP_H_REASON_ASM',
+        '80818d8e80818d05': 'MAGIC_OSC_NOMAP_H_REASON_STRICT_ANSI',
+        '97cfa25a9fb39d01': 'MAGIC_OSC_COMPILER_ICC',
+        '97cfa25a9fb39d02': 'MAGIC_OSC_COMPILER_CLANG',
+        '97cfa25a9fb39d03': 'MAGIC_OSC_COMPILER_GCC',
+        '97cfa25a9fb39d04': 'MAGIC_OSC_COMPILER_OTHER',
+    },
+    ### LIBC functions
+    'memcpy': {
+        '8388864': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388865': 'MAGIC_FUNC_MAGIC1',
+        '8388866': 'MAGIC_FUNC_MAGIC2',
+        '8388867': 'MAGIC_FUNC_MAGIC3',
+        '8388868': 'MAGIC_FUNC_MAGIC4',
+        '8388871': 'MAGIC_FUNC_MAGIC7',
+        '8388872': 'MAGIC_FUNC_MAGIC8',
+        '8388873': 'MAGIC_FUNC_MAGIC9',
+        '8388874': 'MAGIC_FUNC_MAGICa',
+        '8388875': 'MAGIC_FUNC_MAGICb',
+    },
+    'memmove': {
+        '8388880': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388881': 'MAGIC_FUNC_MAGIC1',
+        '8388882': 'MAGIC_FUNC_MAGIC2',
+        '8388883': 'MAGIC_FUNC_MAGIC3',
+        '8388884': 'MAGIC_FUNC_MAGIC4',
+        '8388887': 'MAGIC_FUNC_MAGIC7',
+        '8388888': 'MAGIC_FUNC_MAGIC8',
+        '8388889': 'MAGIC_FUNC_MAGIC9',
+        '8388890': 'MAGIC_FUNC_MAGICa',
+        '8388891': 'MAGIC_FUNC_MAGICb',
+    },
+    'memset': {
+        '8388896': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388897': 'MAGIC_FUNC_MAGIC1',
+        '8388898': 'MAGIC_FUNC_MAGIC2',
+        '8388899': 'MAGIC_FUNC_MAGIC3',
+        '8388900': 'MAGIC_FUNC_MAGIC4',
+    },
+    'bcopy': {
+        '8388912': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388913': 'MAGIC_FUNC_MAGIC1',
+        '8388914': 'MAGIC_FUNC_MAGIC2',
+        '8388915': 'MAGIC_FUNC_MAGIC3',
+        '8388916': 'MAGIC_FUNC_MAGIC4',
+        '8388919': 'MAGIC_FUNC_MAGIC7',
+        '8388920': 'MAGIC_FUNC_MAGIC8',
+        '8388921': 'MAGIC_FUNC_MAGIC9',
+        '8388922': 'MAGIC_FUNC_MAGICa',
+        '8388923': 'MAGIC_FUNC_MAGICb',
+    },
+    'bzero': {
+        '8388928': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388929': 'MAGIC_FUNC_MAGIC1',
+        '8388930': 'MAGIC_FUNC_MAGIC2',
+        '8388931': 'MAGIC_FUNC_MAGIC3',
+        '8388932': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strcpy': {
+        '8388944': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388945': 'MAGIC_FUNC_MAGIC1',
+        '8388946': 'MAGIC_FUNC_MAGIC2',
+        '8388947': 'MAGIC_FUNC_MAGIC3',
+        '8388948': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strncpy': {
+        '8388960': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388961': 'MAGIC_FUNC_MAGIC1',
+        '8388962': 'MAGIC_FUNC_MAGIC2',
+        '8388963': 'MAGIC_FUNC_MAGIC3',
+        '8388964': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strcat': {
+        '8388976': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388977': 'MAGIC_FUNC_MAGIC1',
+        '8388978': 'MAGIC_FUNC_MAGIC2',
+        '8388979': 'MAGIC_FUNC_MAGIC3',
+        '8388980': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strncat': {
+        '8388992': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8388993': 'MAGIC_FUNC_MAGIC1',
+        '8388994': 'MAGIC_FUNC_MAGIC2',
+        '8388995': 'MAGIC_FUNC_MAGIC3',
+        '8388996': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strnlen': {
+        '8389008': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389009': 'MAGIC_FUNC_MAGIC1',
+        '8389010': 'MAGIC_FUNC_MAGIC2',
+        '8389011': 'MAGIC_FUNC_MAGIC3',
+        '8389012': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vsnprintf': {
+        '8389024': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389025': 'MAGIC_FUNC_MAGIC1',
+        '8389026': 'MAGIC_FUNC_MAGIC2',
+        '8389027': 'MAGIC_FUNC_MAGIC3',
+        '8389028': 'MAGIC_FUNC_MAGIC4',
+    },
+    ### GLIBC fortify-source functions
+    'asprintf': {
+        '8389040': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389041': 'MAGIC_FUNC_MAGIC1',
+        '8389042': 'MAGIC_FUNC_MAGIC2',
+        '8389043': 'MAGIC_FUNC_MAGIC3',
+        '8389044': 'MAGIC_FUNC_MAGIC4',
+    },
+    'dprintf': {
+        '8389056': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389057': 'MAGIC_FUNC_MAGIC1',
+        '8389058': 'MAGIC_FUNC_MAGIC2',
+        '8389059': 'MAGIC_FUNC_MAGIC3',
+        '8389060': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fprintf': {
+        '8389072': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389073': 'MAGIC_FUNC_MAGIC1',
+        '8389074': 'MAGIC_FUNC_MAGIC2',
+        '8389075': 'MAGIC_FUNC_MAGIC3',
+        '8389076': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fwprintf': {
+        '8389088': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389089': 'MAGIC_FUNC_MAGIC1',
+        '8389090': 'MAGIC_FUNC_MAGIC2',
+        '8389091': 'MAGIC_FUNC_MAGIC3',
+        '8389092': 'MAGIC_FUNC_MAGIC4',
+    },
+    'printf': {
+        '8389104': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389105': 'MAGIC_FUNC_MAGIC1',
+        '8389106': 'MAGIC_FUNC_MAGIC2',
+        '8389107': 'MAGIC_FUNC_MAGIC3',
+        '8389108': 'MAGIC_FUNC_MAGIC4',
+    },
+    'snprintf': {
+        '8389120': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389121': 'MAGIC_FUNC_MAGIC1',
+        '8389122': 'MAGIC_FUNC_MAGIC2',
+        '8389123': 'MAGIC_FUNC_MAGIC3',
+        '8389124': 'MAGIC_FUNC_MAGIC4',
+    },
+    'sprintf': {
+        '8389136': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389137': 'MAGIC_FUNC_MAGIC1',
+        '8389138': 'MAGIC_FUNC_MAGIC2',
+        '8389139': 'MAGIC_FUNC_MAGIC3',
+        '8389140': 'MAGIC_FUNC_MAGIC4',
+    },
+    'swprintf': {
+        '8389152': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389153': 'MAGIC_FUNC_MAGIC1',
+        '8389154': 'MAGIC_FUNC_MAGIC2',
+        '8389155': 'MAGIC_FUNC_MAGIC3',
+        '8389156': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wprintf': {
+        '8389168': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389169': 'MAGIC_FUNC_MAGIC1',
+        '8389170': 'MAGIC_FUNC_MAGIC2',
+        '8389171': 'MAGIC_FUNC_MAGIC3',
+        '8389172': 'MAGIC_FUNC_MAGIC4',
+    },
+    'confstr': {
+        '8389184': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389185': 'MAGIC_FUNC_MAGIC1',
+        '8389186': 'MAGIC_FUNC_MAGIC2',
+        '8389187': 'MAGIC_FUNC_MAGIC3',
+        '8389188': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fgets': {
+        '8389200': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389201': 'MAGIC_FUNC_MAGIC1',
+        '8389202': 'MAGIC_FUNC_MAGIC2',
+        '8389203': 'MAGIC_FUNC_MAGIC3',
+        '8389204': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fgets_unlocked': {
+        '8389216': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389217': 'MAGIC_FUNC_MAGIC1',
+        '8389218': 'MAGIC_FUNC_MAGIC2',
+        '8389219': 'MAGIC_FUNC_MAGIC3',
+        '8389220': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fgetws': {
+        '8389232': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389233': 'MAGIC_FUNC_MAGIC1',
+        '8389234': 'MAGIC_FUNC_MAGIC2',
+        '8389235': 'MAGIC_FUNC_MAGIC3',
+        '8389236': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fgetws_unlocked': {
+        '8389248': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389249': 'MAGIC_FUNC_MAGIC1',
+        '8389250': 'MAGIC_FUNC_MAGIC2',
+        '8389251': 'MAGIC_FUNC_MAGIC3',
+        '8389252': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fread': {
+        '8389264': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389265': 'MAGIC_FUNC_MAGIC1',
+        '8389266': 'MAGIC_FUNC_MAGIC2',
+        '8389267': 'MAGIC_FUNC_MAGIC3',
+        '8389268': 'MAGIC_FUNC_MAGIC4',
+    },
+    'fread_unlocked': {
+        '8389280': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389281': 'MAGIC_FUNC_MAGIC1',
+        '8389282': 'MAGIC_FUNC_MAGIC2',
+        '8389283': 'MAGIC_FUNC_MAGIC3',
+        '8389284': 'MAGIC_FUNC_MAGIC4',
+    },
+    'getcwd': {
+        '8389296': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389297': 'MAGIC_FUNC_MAGIC1',
+        '8389298': 'MAGIC_FUNC_MAGIC2',
+        '8389299': 'MAGIC_FUNC_MAGIC3',
+        '8389300': 'MAGIC_FUNC_MAGIC4',
+    },
+    'getdomainname': {
+        '8389312': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389313': 'MAGIC_FUNC_MAGIC1',
+        '8389314': 'MAGIC_FUNC_MAGIC2',
+        '8389315': 'MAGIC_FUNC_MAGIC3',
+        '8389316': 'MAGIC_FUNC_MAGIC4',
+    },
+    'getgroups': {
+        '8389328': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389329': 'MAGIC_FUNC_MAGIC1',
+        '8389330': 'MAGIC_FUNC_MAGIC2',
+        '8389331': 'MAGIC_FUNC_MAGIC3',
+        '8389332': 'MAGIC_FUNC_MAGIC4',
+    },
+    'gethostname': {
+        '8389344': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389345': 'MAGIC_FUNC_MAGIC1',
+        '8389346': 'MAGIC_FUNC_MAGIC2',
+        '8389347': 'MAGIC_FUNC_MAGIC3',
+        '8389348': 'MAGIC_FUNC_MAGIC4',
+    },
+    'gets': {
+        '8389360': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389361': 'MAGIC_FUNC_MAGIC1',
+        '8389362': 'MAGIC_FUNC_MAGIC2',
+        '8389363': 'MAGIC_FUNC_MAGIC3',
+        '8389364': 'MAGIC_FUNC_MAGIC4',
+    },
+    'getwd': {
+        '8389376': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389377': 'MAGIC_FUNC_MAGIC1',
+        '8389378': 'MAGIC_FUNC_MAGIC2',
+        '8389379': 'MAGIC_FUNC_MAGIC3',
+        '8389380': 'MAGIC_FUNC_MAGIC4',
+    },
+    'longjmp': {
+        '8389392': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389393': 'MAGIC_FUNC_MAGIC1',
+        '8389394': 'MAGIC_FUNC_MAGIC2',
+        '8389395': 'MAGIC_FUNC_MAGIC3',
+        '8389396': 'MAGIC_FUNC_MAGIC4',
+    },
+    'mbsnrtowcs': {
+        '8389408': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389409': 'MAGIC_FUNC_MAGIC1',
+        '8389410': 'MAGIC_FUNC_MAGIC2',
+        '8389411': 'MAGIC_FUNC_MAGIC3',
+        '8389412': 'MAGIC_FUNC_MAGIC4',
+    },
+    'mbsrtowcs': {
+        '8389424': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389425': 'MAGIC_FUNC_MAGIC1',
+        '8389426': 'MAGIC_FUNC_MAGIC2',
+        '8389427': 'MAGIC_FUNC_MAGIC3',
+        '8389428': 'MAGIC_FUNC_MAGIC4',
+    },
+    'mbstowcs': {
+        '8389440': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389441': 'MAGIC_FUNC_MAGIC1',
+        '8389442': 'MAGIC_FUNC_MAGIC2',
+        '8389443': 'MAGIC_FUNC_MAGIC3',
+        '8389444': 'MAGIC_FUNC_MAGIC4',
+    },
+    'mempcpy': {
+        '8389456': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389457': 'MAGIC_FUNC_MAGIC1',
+        '8389458': 'MAGIC_FUNC_MAGIC2',
+        '8389459': 'MAGIC_FUNC_MAGIC3',
+        '8389460': 'MAGIC_FUNC_MAGIC4',
+    },
+    'poll': {
+        '8389472': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389473': 'MAGIC_FUNC_MAGIC1',
+        '8389474': 'MAGIC_FUNC_MAGIC2',
+        '8389475': 'MAGIC_FUNC_MAGIC3',
+        '8389476': 'MAGIC_FUNC_MAGIC4',
+    },
+    'ppoll': {
+        '8389488': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389489': 'MAGIC_FUNC_MAGIC1',
+        '8389490': 'MAGIC_FUNC_MAGIC2',
+        '8389491': 'MAGIC_FUNC_MAGIC3',
+        '8389492': 'MAGIC_FUNC_MAGIC4',
+    },
+    'pread': {
+        '8389504': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389505': 'MAGIC_FUNC_MAGIC1',
+        '8389506': 'MAGIC_FUNC_MAGIC2',
+        '8389507': 'MAGIC_FUNC_MAGIC3',
+        '8389508': 'MAGIC_FUNC_MAGIC4',
+    },
+    'read': {
+        '8389520': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389521': 'MAGIC_FUNC_MAGIC1',
+        '8389522': 'MAGIC_FUNC_MAGIC2',
+        '8389523': 'MAGIC_FUNC_MAGIC3',
+        '8389524': 'MAGIC_FUNC_MAGIC4',
+    },
+    'readlinkat': {
+        '8389536': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389537': 'MAGIC_FUNC_MAGIC1',
+        '8389538': 'MAGIC_FUNC_MAGIC2',
+        '8389539': 'MAGIC_FUNC_MAGIC3',
+        '8389540': 'MAGIC_FUNC_MAGIC4',
+    },
+    'readlink': {
+        '8389552': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389553': 'MAGIC_FUNC_MAGIC1',
+        '8389554': 'MAGIC_FUNC_MAGIC2',
+        '8389555': 'MAGIC_FUNC_MAGIC3',
+        '8389556': 'MAGIC_FUNC_MAGIC4',
+    },
+    'realpath': {
+        '8389568': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389569': 'MAGIC_FUNC_MAGIC1',
+        '8389570': 'MAGIC_FUNC_MAGIC2',
+        '8389571': 'MAGIC_FUNC_MAGIC3',
+        '8389572': 'MAGIC_FUNC_MAGIC4',
+    },
+    'recv': {
+        '8389584': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389585': 'MAGIC_FUNC_MAGIC1',
+        '8389586': 'MAGIC_FUNC_MAGIC2',
+        '8389587': 'MAGIC_FUNC_MAGIC3',
+        '8389588': 'MAGIC_FUNC_MAGIC4',
+    },
+    'recvfrom': {
+        '8389600': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389601': 'MAGIC_FUNC_MAGIC1',
+        '8389602': 'MAGIC_FUNC_MAGIC2',
+        '8389603': 'MAGIC_FUNC_MAGIC3',
+        '8389604': 'MAGIC_FUNC_MAGIC4',
+    },
+    'stpcpy': {
+        '8389616': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389617': 'MAGIC_FUNC_MAGIC1',
+        '8389618': 'MAGIC_FUNC_MAGIC2',
+        '8389619': 'MAGIC_FUNC_MAGIC3',
+        '8389620': 'MAGIC_FUNC_MAGIC4',
+    },
+    'stpncpy': {
+        '8389632': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389633': 'MAGIC_FUNC_MAGIC1',
+        '8389634': 'MAGIC_FUNC_MAGIC2',
+        '8389635': 'MAGIC_FUNC_MAGIC3',
+        '8389636': 'MAGIC_FUNC_MAGIC4',
+    },
+    'ttyname_r': {
+        '8389648': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389649': 'MAGIC_FUNC_MAGIC1',
+        '8389650': 'MAGIC_FUNC_MAGIC2',
+        '8389651': 'MAGIC_FUNC_MAGIC3',
+        '8389652': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vasprintf': {
+        '8389664': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389665': 'MAGIC_FUNC_MAGIC1',
+        '8389666': 'MAGIC_FUNC_MAGIC2',
+        '8389667': 'MAGIC_FUNC_MAGIC3',
+        '8389668': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vdprintf': {
+        '8389680': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389681': 'MAGIC_FUNC_MAGIC1',
+        '8389682': 'MAGIC_FUNC_MAGIC2',
+        '8389683': 'MAGIC_FUNC_MAGIC3',
+        '8389684': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vfprintf': {
+        '8389696': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389697': 'MAGIC_FUNC_MAGIC1',
+        '8389698': 'MAGIC_FUNC_MAGIC2',
+        '8389699': 'MAGIC_FUNC_MAGIC3',
+        '8389700': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vfwprintf': {
+        '8389712': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389713': 'MAGIC_FUNC_MAGIC1',
+        '8389714': 'MAGIC_FUNC_MAGIC2',
+        '8389715': 'MAGIC_FUNC_MAGIC3',
+        '8389716': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vprintf': {
+        '8389728': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389729': 'MAGIC_FUNC_MAGIC1',
+        '8389730': 'MAGIC_FUNC_MAGIC2',
+        '8389731': 'MAGIC_FUNC_MAGIC3',
+        '8389732': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vsprintf': {
+        '8389744': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389745': 'MAGIC_FUNC_MAGIC1',
+        '8389746': 'MAGIC_FUNC_MAGIC2',
+        '8389747': 'MAGIC_FUNC_MAGIC3',
+        '8389748': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vswprintf': {
+        '8389760': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389761': 'MAGIC_FUNC_MAGIC1',
+        '8389762': 'MAGIC_FUNC_MAGIC2',
+        '8389763': 'MAGIC_FUNC_MAGIC3',
+        '8389764': 'MAGIC_FUNC_MAGIC4',
+    },
+    'vwprintf': {
+        '8389776': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389777': 'MAGIC_FUNC_MAGIC1',
+        '8389778': 'MAGIC_FUNC_MAGIC2',
+        '8389779': 'MAGIC_FUNC_MAGIC3',
+        '8389780': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcpcpy': {
+        '8389792': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389793': 'MAGIC_FUNC_MAGIC1',
+        '8389794': 'MAGIC_FUNC_MAGIC2',
+        '8389795': 'MAGIC_FUNC_MAGIC3',
+        '8389796': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcpncpy': {
+        '8389808': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389809': 'MAGIC_FUNC_MAGIC1',
+        '8389810': 'MAGIC_FUNC_MAGIC2',
+        '8389811': 'MAGIC_FUNC_MAGIC3',
+        '8389812': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcrtomb': {
+        '8389824': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389825': 'MAGIC_FUNC_MAGIC1',
+        '8389826': 'MAGIC_FUNC_MAGIC2',
+        '8389827': 'MAGIC_FUNC_MAGIC3',
+        '8389828': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcscat': {
+        '8389840': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389841': 'MAGIC_FUNC_MAGIC1',
+        '8389842': 'MAGIC_FUNC_MAGIC2',
+        '8389843': 'MAGIC_FUNC_MAGIC3',
+        '8389844': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcscpy': {
+        '8389856': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389857': 'MAGIC_FUNC_MAGIC1',
+        '8389858': 'MAGIC_FUNC_MAGIC2',
+        '8389859': 'MAGIC_FUNC_MAGIC3',
+        '8389860': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcsncat': {
+        '8389872': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389873': 'MAGIC_FUNC_MAGIC1',
+        '8389874': 'MAGIC_FUNC_MAGIC2',
+        '8389875': 'MAGIC_FUNC_MAGIC3',
+        '8389876': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcsncpy': {
+        '8389888': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389889': 'MAGIC_FUNC_MAGIC1',
+        '8389890': 'MAGIC_FUNC_MAGIC2',
+        '8389891': 'MAGIC_FUNC_MAGIC3',
+        '8389892': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcsnrtombs': {
+        '8389904': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389905': 'MAGIC_FUNC_MAGIC1',
+        '8389906': 'MAGIC_FUNC_MAGIC2',
+        '8389907': 'MAGIC_FUNC_MAGIC3',
+        '8389908': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcsrtombs': {
+        '8389920': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389921': 'MAGIC_FUNC_MAGIC1',
+        '8389922': 'MAGIC_FUNC_MAGIC2',
+        '8389923': 'MAGIC_FUNC_MAGIC3',
+        '8389924': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wcstombs': {
+        '8389936': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389937': 'MAGIC_FUNC_MAGIC1',
+        '8389938': 'MAGIC_FUNC_MAGIC2',
+        '8389939': 'MAGIC_FUNC_MAGIC3',
+        '8389940': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wctomb': {
+        '8389952': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389953': 'MAGIC_FUNC_MAGIC1',
+        '8389954': 'MAGIC_FUNC_MAGIC2',
+        '8389955': 'MAGIC_FUNC_MAGIC3',
+        '8389956': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wmemcpy': {
+        '8389968': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389969': 'MAGIC_FUNC_MAGIC1',
+        '8389970': 'MAGIC_FUNC_MAGIC2',
+        '8389971': 'MAGIC_FUNC_MAGIC3',
+        '8389972': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wmemmove': {
+        '8389984': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8389985': 'MAGIC_FUNC_MAGIC1',
+        '8389986': 'MAGIC_FUNC_MAGIC2',
+        '8389987': 'MAGIC_FUNC_MAGIC3',
+        '8389988': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wmempcpy': {
+        '8390000': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390001': 'MAGIC_FUNC_MAGIC1',
+        '8390002': 'MAGIC_FUNC_MAGIC2',
+        '8390003': 'MAGIC_FUNC_MAGIC3',
+        '8390004': 'MAGIC_FUNC_MAGIC4',
+    },
+    'wmemset': {
+        '8390016': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390017': 'MAGIC_FUNC_MAGIC1',
+        '8390018': 'MAGIC_FUNC_MAGIC2',
+        '8390019': 'MAGIC_FUNC_MAGIC3',
+        '8390020': 'MAGIC_FUNC_MAGIC4',
+    },
+    ### SAFEC functions
+    'memcmp_s': {
+        '8390032': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390033': 'MAGIC_FUNC_MAGIC1',
+        '8390034': 'MAGIC_FUNC_MAGIC2',
+        '8390035': 'MAGIC_FUNC_MAGIC3',
+        '8390036': 'MAGIC_FUNC_MAGIC4',
+    },
+    'memcpy_s': {
+        '8390048': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390049': 'MAGIC_FUNC_MAGIC1',
+        '8390050': 'MAGIC_FUNC_MAGIC2',
+        '8390051': 'MAGIC_FUNC_MAGIC3',
+        '8390052': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strcat_s': {
+        '8390064': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390065': 'MAGIC_FUNC_MAGIC1',
+        '8390066': 'MAGIC_FUNC_MAGIC2',
+        '8390067': 'MAGIC_FUNC_MAGIC3',
+        '8390068': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strcmp_s': {
+        '8390080': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390081': 'MAGIC_FUNC_MAGIC1',
+        '8390082': 'MAGIC_FUNC_MAGIC2',
+        '8390083': 'MAGIC_FUNC_MAGIC3',
+        '8390084': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strcpy_s': {
+        '8390096': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390097': 'MAGIC_FUNC_MAGIC1',
+        '8390098': 'MAGIC_FUNC_MAGIC2',
+        '8390099': 'MAGIC_FUNC_MAGIC3',
+        '8390100': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strncat_s': {
+        '8390112': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390113': 'MAGIC_FUNC_MAGIC1',
+        '8390114': 'MAGIC_FUNC_MAGIC2',
+        '8390115': 'MAGIC_FUNC_MAGIC3',
+        '8390116': 'MAGIC_FUNC_MAGIC4',
+        '8390117': 'MAGIC_FUNC_MAGIC5',
+        '8390118': 'MAGIC_FUNC_MAGIC6',
+    },
+    'strncpy_s': {
+        '8390128': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390129': 'MAGIC_FUNC_MAGIC1',
+        '8390130': 'MAGIC_FUNC_MAGIC2',
+        '8390131': 'MAGIC_FUNC_MAGIC3',
+        '8390132': 'MAGIC_FUNC_MAGIC4',
+        '8390133': 'MAGIC_FUNC_MAGIC5',
+        '8390134': 'MAGIC_FUNC_MAGIC6',
+    },
+    'strnlen_s': {
+        '8390144': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390145': 'MAGIC_FUNC_MAGIC1',
+        '8390146': 'MAGIC_FUNC_MAGIC2',
+        '8390147': 'MAGIC_FUNC_MAGIC3',
+        '8390148': 'MAGIC_FUNC_MAGIC4',
+    },
+    'strstr_s': {
+        '8390160': 'MAGIC_FUNC_NOMAPPING_MAGIC0',
+        '8390161': 'MAGIC_FUNC_MAGIC1',
+        '8390162': 'MAGIC_FUNC_MAGIC2',
+        '8390163': 'MAGIC_FUNC_MAGIC3',
+        '8390164': 'MAGIC_FUNC_MAGIC4',
+    },
+}
+
 
 initial_start_time = datetime.now()
 start_time = datetime.now()
@@ -110,6 +729,8 @@ directories.
     parser.add_argument('-d', '--builddir',
                     help = "perform check in a directory of your build workspace or unbundled directory."
                            " If omitted, the current directory will be used")
+    parser.add_argument("-t", "--magictype",
+                    help = "the type of magic words in use, either byte_inline or dwarf_loc")
     parser.add_argument("--watermarkfiles",
                     help = "a list of comma-separated binary file names for watermark-PC check")
     parser.add_argument('-j', '--jsonoutputfile',
@@ -133,7 +754,7 @@ directories.
                     help = "OSC magic word check, high-level stats only")
     parser.add_argument("-w", "--watermarkpc",
                     action = "store_true",
-                    help = "Watermark-PC check, scan magic words, get PCs and decode the PCs to source lines")
+                    help = "Watermark-PC check, scan magic words, decode the PCs to source lines")
     parser.add_argument("--scan_all_elf_files",
                     action = "store_true",
                     help = "The default is ELF shared object and executable files only. This flag will scan all ELF files")
@@ -157,8 +778,15 @@ directories.
     if args.builddir:
         builddirs = args.builddir.split(',')
 
-    if not (args.bosc or args.watermarkpc or args.summary):
-        print ("Please specify the check: -b, -w, or -y!")
+    if not (args.bosc or args.magiccheck or args.watermarkpc or args.summary):
+        print ("Please specify the check: -b, -m, -w, or -y!")
+        print ("")
+        print ('Run "' + sys.argv[0] + ' -h" for help.')
+        sys.exit()
+
+    # If there is no any builddir, then print help and exit
+    if args.magictype and args.magictype.lower() not in ("dwarf_loc", "byte_inline"):
+        print ("Please provide a valid value for magictype: dwarf_loc or byte_inline!")
         print ("")
         print ('Run "' + sys.argv[0] + ' -h" for help.')
         sys.exit()
@@ -399,6 +1027,22 @@ def set_config_progs():
 #### OSC-METRIC feature, checking embedded MAGIC words ####
 ############################################################
 
+def get_elf_section_hexdump(afile, section):
+    '''
+    Get hexdump of an ELF section content for afile.
+    '''
+    cmd = g_readelf_prog + " -x " + section + ' ' + cmd_quote(afile) + ' | grep "^  0x" || true'
+    output = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+    lines = output.splitlines()
+    array = []
+    for line in lines:
+        tokens = line.strip().split(" ")[1:5]
+        for token in tokens:
+            if token:
+                array.append(token)
+    return ''.join(array)
+
+
 def get_file_hexdump(afile):
     cmd = "xxd -p " + cmd_quote(afile) + " | tr -d '\n'"
     output = subprocess.check_output(cmd, shell=True, universal_newlines=True)
@@ -460,7 +1104,8 @@ magic_types = {
     'MAGIC_FUNC_MAGICb': 'func_unknown_dst_size_and_src_overread',
 }
 
-all_magics = {
+# the magics array for byte_inline method
+water_all_magics = {
     'FILEMAGICS': {
         '80818d8e80818d8e': 'MAGIC_OSC_HEADER_INCLUDED',
         '80818d8e80818d8f': 'MAGIC_OSC_NOMAP_H_INCLUDED',
@@ -1086,11 +1731,24 @@ func_magics_watermarkpc = ['MAGIC_FUNC_NOMAPPING_MAGIC0', 'MAGIC_FUNC_MAGIC1',
 
 # Reverse subdicts of 'function', 'type', and 'common' for reverse lookup
 reverse_magic_types = dict((v, k) for k, v in magic_types.items())
-reverse_all_magics = {}
-for function, magics in all_magics.items():
-    reverse_all_magics[function] = dict((v, k) for k, v in magics.items())
 #print (reverse_magic_types)
-#print (reverse_all_magics)
+reverse_all_magics = {}
+
+
+def initialize_all_magics(magic_type):
+    '''
+    Initialize magic arrays based on magic_type.
+    '''
+    global reverse_all_magics
+    global g_all_magics
+    reverse_all_magics = {}
+    g_all_magics = water_all_magics
+    if magic_type == 'dwarf_loc':
+        g_all_magics = loc_all_magics
+    for function, magics in g_all_magics.items():
+        reverse_all_magics[function] = dict((v, k) for k, v in magics.items())
+    #print (reverse_all_magics)
+
 
 # Wrapper function for the actual check_magic
 def check_magic(builddir):
@@ -1116,11 +1774,11 @@ def check_magic(builddir):
 
     (stats_db, d_sum) = get_stats_for_all_files(builddir, get_all_osc_magic_words())
     # Do all the functions
-    for function in all_magics:
+    for function in g_all_magics:
         check_magic_for_func(builddir, subdict, function, stats_db)
     subdict[builddir]["SUM_STATS"] = d_sum
     #print (d_sum)
-    print ("Total number of OSC functions: " + str(len(all_magics) - 1))
+    print ("Total number of OSC functions: " + str(len(g_all_magics) - 1))
     print ("Total number of magic words to count: " + str(len(d_sum)))
     print_end_time()
 
@@ -1130,8 +1788,8 @@ def get_all_osc_magic_words():
     Get a list of all magic words for OSC-metric.
     '''
     result = dict()
-    for func in all_magics:
-        magics = all_magics[func]
+    for func in g_all_magics:
+        magics = g_all_magics[func]
         for m in magics:
             if m in result:
                  print ("***WARNING***: duplicate magic word " + m)
@@ -1139,7 +1797,7 @@ def get_all_osc_magic_words():
     return result
 
 
-def get_stats_of_magic_words(afile, magics):
+def get_stats_of_magic_words_water(afile, magics):
     '''
     Get stats for all the magic words in the magics list for afile.
     It generates a hexdump of the file, and then count magic words.
@@ -1149,8 +1807,35 @@ def get_stats_of_magic_words(afile, magics):
     for magic in magics:
         ct = hexstr.count(magic)
         result[magic] = ct
-
     return result
+
+
+def get_stats_of_magic_words_loc(afile, magics):
+    '''
+    Get stats for all the magic words in the magics list for afile.
+    It generates a magic_list of the file, and then count magic words.
+    '''
+    lines = get_osc_metric_lines_of_afile(afile)
+    result = dict()
+    for magic in magics:
+        ct = lines.count(magic)
+        result[magic] = ct
+    hexstr = get_elf_section_hexdump(afile, ".data")
+    for magic in magics:
+        ct = hexstr.count(magic)
+        if not result[magic]:
+            result[magic] = ct
+    return result
+
+
+def get_stats_of_magic_words(afile, magics):
+    '''
+    Get stats for all the magic words in the magics list for afile.
+    It automatically picks the right magics array based on magic_type configured.
+    '''
+    if args.magictype and args.magictype == 'byte_inline':
+        return get_stats_of_magic_words_water(afile, magics)
+    return get_stats_of_magic_words_loc(afile, magics)
 
 
 def get_nonzero_stats_db(stats_db):
@@ -1175,7 +1860,7 @@ def get_stats_db_for_func(stats_db, function):
         newstats = dict()
         sum_stats = 0
         for m in stats:
-            if m in all_magics[function]:
+            if m in g_all_magics[function]:
                 sum_stats += stats[m]
                 newstats[m] = stats[m]
         if sum_stats > 0:
@@ -1218,8 +1903,8 @@ def get_noheader_nomap_list_from_stats_db(stats_db):
 
 def create_osc_sum_stats():
     stats = dict()
-    for func in all_magics:
-        magics = all_magics[func]
+    for func in g_all_magics:
+        magics = g_all_magics[func]
         for m in magics:
             stats[m] = [0, func, magic_types[magics[m]]]
     return stats
@@ -1268,9 +1953,29 @@ def check_magic_for_func(builddir, subdict, function, stats_db):
 #### OSC-METRIC-SOURCE feature, print Source Code Info ####
 ############################################################
 
+# the pretty-print output of addr2line (with -p option) is like below:
+#__builtin_strncpy at test/openosc_test.c:8389379
+# (inlined by) openosc_test_strcpy at test/openosc_test.c:25
+# (inlined by) main at test/openosc_test.c:72
+def get_func_srcline_from_addr2line_decode_line_pretty(line):
+    '''
+    Extract function and srcline from the addr2line code line in pretty-print format.
+    '''
+    line = line.strip()
+    tokens = line.split()
+    if "(inlined by) " in line and len(tokens) > 4:
+        return (tokens[2], tokens[4])
+    elif len(tokens) > 2:
+        return (tokens[0], tokens[2])
+    if len(tokens) > 1:
+        return (tokens[0], tokens[1])
+    return (line, '')
+
+
 def pick_addr2line_decode_entry(lines):
     """
-    Pick the best addr2line decode entry for a file for a specific PC
+    Pick the best addr2line decode entry for a file for a specific PC.
+    this handles "addr2line -p" output or pretty-print format output.
 
     :param lines: the decode output from addr2line
     :returns the addr2line info for the lines
@@ -1284,8 +1989,40 @@ def pick_addr2line_decode_entry(lines):
             srcline = lines[2*entry + 1]
     if func:
         return (func, srcline)
-    # always pick the last entry
-    if len(lines) > 1:
+    #print(lines)
+    # always pick the last entry or the first inline entry
+    if len(lines) > 2:
+        for line in lines:
+            if "(inlined by) " in line:
+                return get_func_srcline_from_addr2line_decode_line_pretty(line)
+    if len(lines) > 0:
+        return get_func_srcline_from_addr2line_decode_line_pretty(lines[-1])
+    return (func, srcline)
+
+
+def pick_addr2line_decode_entry_nopretty(lines):
+    """
+    Pick the best addr2line decode entry for a file for a specific PC
+    this handles addr2line output without -p option.
+
+    :param lines: the decode output from addr2line
+    :returns the addr2line info for the lines
+    """
+    func = srcline = ''
+    if args.pc_decode_entry:
+        entry = int(args.pc_decode_entry, 0)
+        if ( (entry >= 0 and len(lines) > 2*entry+1) or
+             (entry < 0 and len(lines) > -2*entry+1) ):
+            func = lines[2*entry]
+            srcline = lines[2*entry + 1]
+    if func:
+        return (func, srcline)
+    #print(lines)
+    # always pick the last entry or the second-to-last entry
+    if len(lines) > 5:
+        func = lines[-4]
+        srcline = lines[-3]
+    elif len(lines) > 1:
         func = lines[-2]
         srcline = lines[-1]
     elif len(lines) > 0:
@@ -1309,7 +2046,9 @@ def get_addr2line_info(afile, pc):
         pc = hex(int_pc)
     #cmd = g_addr2line_prog + ' -f -i -e ' + cmd_quote(afile) + ' ' + pc + ' || true'
     # Add -C or --demangle option for CPP function decoding
-    cmd = g_addr2line_prog + ' -C -f -i -e ' + cmd_quote(afile) + ' ' + pc + ' || true'
+    #cmd = g_addr2line_prog + ' -C -f -i -e ' + cmd_quote(afile) + ' ' + pc + ' || true'
+    # Add -p or --pretty-print option for better display
+    cmd = g_addr2line_prog + ' -p -C -f -i -e ' + cmd_quote(afile) + ' ' + pc + ' || true'
     output = get_shell_cmd_output(cmd)
     if extraoffset:
         verbose(afile + " addr2line output with extraoffset " + extraoffset + " for orig_pc: " + orig_pc + " new PC " + pc + " is: " + output, LEVEL_2)
@@ -1317,6 +2056,7 @@ def get_addr2line_info(afile, pc):
         verbose(afile + " addr2line output for PC " + pc + " is: " + output, LEVEL_2)
     lines = output.splitlines()
     (func, srcline) = pick_addr2line_decode_entry(lines)
+    #(func, srcline) = pick_addr2line_decode_entry_nopretty(lines)
     return (output, func, srcline)
 
 
@@ -1758,12 +2498,16 @@ def check_watermarkpc(builddir):
     non_watermarkpc_files = []
     watermarkpc_file_dict = dict()
     for line in files:
-        (magic_list, text_section_info) = scan_text_section_from_file(line, all_magics)
+        if args.magictype and args.magictype == 'byte_inline':
+            (magic_list, text_section_info) = scan_text_section_from_file(line, g_all_magics)
+        else:
+            magic_list = scan_debug_lines_from_file(line, g_all_magics)
         if not magic_list:
             non_watermarkpc_files.append(line)
             continue
         watermarkpc_file_dict[line] = d = dict()
-        d["text_section_info"] = {'text_size' : text_section_info[0],
+        if args.magictype and args.magictype == 'byte_inline':
+            d["text_section_info"] = {'text_size' : text_section_info[0],
                                   'text_offset' : text_section_info[1],
                                   'text_vma' : text_section_info[2]}
         d["magic_list"] = magic_list
@@ -2478,6 +3222,184 @@ def output_summary(json_data, main_directory):
             
             print (HDR4)
 
+############################################################
+#### OSC-METRIC feature, checking DWARF debug info ####
+############################################################
+
+def get_osc_metric_info_for_file(afile):
+    '''
+    Find out the OSC-METRIC type and info for a file.
+    '''
+    pc_list = get_osc_metric_pclines_of_afile(afile)
+    if pc_list:
+        return ("LOC", pc_list)
+    (magic_list, text_section_info) = scan_text_section_from_file(afile, g_all_magics)
+    if magic_list:
+        return ("WATERMARK", magic_list)
+    return ("NO_METRIC", [])
+
+
+def get_dwarf_decoded_line_info(afile):
+    '''
+    Get DWARF .debug_line decoded info from an ELF file.
+    It simply runs "readelf -wL afile' and return the lines with PC address.
+    '''
+    cmd = g_readelf_prog + ' -wL ' + cmd_quote(afile) + ' | grep "     0x" || true'
+    #print(cmd)
+    output = get_shell_cmd_output(cmd)
+    if output:
+        return output.splitlines()
+    return []
+
+
+def parse_dwarf_decoded_lines(lines):
+    '''
+    Parse DWARF .debug_line decoded info and return (PC, Line#) list
+    '''
+    ret = []
+    for line in lines:
+        tokens = line.split()
+        if len(tokens) != 3:
+            continue
+        pc = tokens[2]
+        srcline = tokens[1]
+        #print( (pc, srcline) )
+        ret.append( (pc, srcline) )
+    return ret
+
+
+def parse_dwarf_debug_lines_of_afile(afile):
+    '''
+    Parse DWARF .debug_lines and return a list of all .loc (PC, line#).
+    '''
+    lines = get_dwarf_decoded_line_info(afile)
+    ret = parse_dwarf_decoded_lines(lines)
+    #print(len(ret))
+    return ret
+
+
+def get_osc_metric_lines_of_afile(afile):
+    '''
+    Get a list of LOCs with FUNC-MAGICs only.
+    The first FUNC-magic is 8388864 or 0x00800100 in hexadecimal.
+    '''
+    pc_list = parse_dwarf_debug_lines_of_afile(afile)
+    return [entry[1] for entry in pc_list if int(entry[1]) >= 0x00800100]
+
+
+def get_osc_metric_pclines_of_afile(afile):
+    '''
+    Get a list of (PC, LOC)s with both CONSTANT-ENCODING-MAGICS and FUNC-MAGICs.
+    The first .loc magic is 8388592 or 0x007ffff0 in hexadecimal.
+    '''
+    pc_list = parse_dwarf_debug_lines_of_afile(afile)
+    return [entry for entry in pc_list if int(entry[1]) >= 0x007ffff0]
+
+
+# A constant is encoded with the below format:
+# It starts with one line of the magics in g_loc_len_start_maps,
+# then multiple lines of in 8388608-8388623 range,
+# finally it ends with a line of LOC_LEN_END = 8388607.
+
+# 8388607 is 0x007fffff in hexadecimal.
+LOC_LEN_END = '8388607'
+
+# 8388592 = 0x007ffff0
+# 8388603 = 0x007ffffb
+g_loc_len_start_maps = {
+'8388592' : (1, 1),
+'8388593' : (1, 2),
+'8388594' : (1, 4),
+'8388595' : (2, 1),
+'8388596' : (2, 2),
+'8388597' : (2, 4),
+'8388598' : (4, 1),
+'8388599' : (4, 2),
+'8388600' : (4, 4),
+'8388601' : (8, 1),
+'8388602' : (8, 2),
+'8388603' : (8, 4),
+}
+
+def get_loc_dst_len_objsize(stack):
+    '''
+    Get encoded (dst_size, src_size, copylen) from the .loc constant-encoding list.
+
+    :param stack: a list of .loc srcline encoding one or more constant values.
+    :returns a string of comma-separated constant values.
+    '''
+    values = []
+    value = 0
+    shift = 0
+    nbytes, mbits = 8, 4
+    mask = (1 << mbits) - 1
+    for line in stack:
+        if line == LOC_LEN_END:
+            # we always encode a constant as 64-bit signed integer
+            if value > 0x7FFFFFFFFFFFFFFF:
+                value -= 0x10000000000000000
+            values.append(str(value))
+            continue
+        elif line in g_loc_len_start_maps:
+            (nbytes, mbits) = g_loc_len_start_maps[line]
+            mask = (1 << mbits) - 1
+            value = 0
+            shift = 0
+            continue
+        value += (int(line) & mask) << shift
+        shift += mbits
+    #print(values)
+    return ','.join(values)
+
+
+def scan_debug_lines_from_file(afile, magics):
+    """
+    Scan .debug_lines ELF section for PCs/source code lines of matching magics.
+
+    :param afile: a binary file to scan magic words and retrieve srcline info
+    :param magics: the predefined magic words for all OSC functions
+    :returns the list of magic words and its srcline info
+    """
+    verbose("Scanning DWARF debug lines info from " + afile, LEVEL_1)
+    pc_list = parse_dwarf_debug_lines_of_afile(afile)
+    magic_list = []
+    prev_pc = 0
+    stack = []
+    for pc, line in pc_list:
+        #print( (pc, line) )
+        if stack and pc != prev_pc:
+            # a new PC address is found, and a non-empty stack with encoded constant values.
+            #print("pc: " + prev_pc + " stack: " + str(stack) + " d: " + str(d))
+            d['dstsize'] = get_loc_dst_len_objsize(stack)
+            stack = []
+        if int(line) < 0x00700000:
+            #print("Line# not in LOC magic range, skip it.")
+            continue
+        match = match_magic_word(line, magics)
+        if not match:
+            int_line = int(line)
+            if int_line >= 0x007fff00 and int_line < 0x00800100 and pc == prev_pc:
+                stack.append(line)
+            continue
+        hex_pc = pc
+        (output, srcfunc, srcline) = get_addr2line_info(afile, hex_pc)
+        d = dict()
+        d['PC'] = hex_pc
+        d['magic'] = line
+        d['oscfunc'] = match[0]
+        d['caseno'] = match[1]
+        d['srcfunc'] = srcfunc
+        d['srcline'] = srcline
+        d['offset'] = 0
+        magic_list.append(d)
+        prev_pc = pc
+    return magic_list
+
+
+############################################################
+#### End of OSC-METRIC feature, checking debug info ####
+############################################################
+
 
 def main():
     # parse command line options first
@@ -2498,6 +3420,11 @@ def main():
 
     # Print time
     print_start_time()
+
+    magic_type = "dwarf_loc"
+    if args.magictype:
+        magic_type = args.magictype.lower()
+    initialize_all_magics(magic_type)
 
     # Check build dirs for all binary files
     total_score = 0

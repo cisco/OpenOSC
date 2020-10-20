@@ -40,30 +40,34 @@
 #ifdef OPENOSC_HEADER_METRIC_FEATURE_ENABLED
 /*
  * There are two OSC metric methods:
- *  1. ASM(".byte 0x80 0x81") approach.
- *  2. variable = 0x8081 approach.
+ *  1. ASM(".byte 0x80 0x81") approach. this is also called embedded watermarks.
+ *  2. ASM(".loc 1 0x8081") approach. this uses DWARF debugging.
+ * The DWARF .loc method is the default.
+ * New OSC-METRICS method can be added in future as necessary.
  */
 #define RTD_ASM_BYTE_METHOD 1
-#define RTD_VAR_ASSIGN_METHOD 2
+#define RTD_ASM_LOC_METHOD 2
 
-/* Automatically pick the appropriate method based on predefined flags */
-#if defined __x86_64__ || defined __i386__ || defined __amd64__ || defined __X86__ || defined __X86_64__
-#define OSC_ARCH_X86
-#define RTD_OSC_METRIC_METHOD RTD_ASM_BYTE_METHOD
-#elif defined __arm__ || defined __aarch64__ || defined __arm || defined _M_ARM
-#define OSC_ARCH_ARM
-#define RTD_OSC_METRIC_METHOD RTD_ASM_BYTE_METHOD
-#elif defined __mips__ || defined mips || defined __MIPS__ || defined __mips
-#define OSC_ARCH_MIPS
-#define RTD_OSC_METRIC_METHOD RTD_ASM_BYTE_METHOD
-#elif defined __ppc__ || defined __PPC__ || defined __PPC || defined _ARCH_PPC || defined __powerpc__ || defined __ppc64__ || defined __powerpc64__
-#define OSC_ARCH_PPC
-#define RTD_OSC_METRIC_METHOD RTD_ASM_BYTE_METHOD
+/* -DOPENOSC_METRIC_METHOD=x can be used by a component to pick the method */
+/* #define OPENOSC_METRIC_METHOD RTD_ASM_BYTE_METHOD */
+#ifdef OPENOSC_METRIC_METHOD
+#define RTD_OSC_METRIC_METHOD OPENOSC_METRIC_METHOD
 #else
-#define RTD_OSC_METRIC_METHOD RTD_VAR_ASSIGN_METHOD
+#define RTD_OSC_METRIC_METHOD RTD_ASM_LOC_METHOD
 #endif
 
 #if (RTD_OSC_METRIC_METHOD == RTD_ASM_BYTE_METHOD)
+
+/* Automatically set appropriate architecture based on predefined flags */
+#if defined __x86_64__ || defined __i386__ || defined __amd64__ || defined __X86__ || defined __X86_64__
+#define OSC_ARCH_X86
+#elif defined __arm__ || defined __aarch64__ || defined __arm || defined _M_ARM
+#define OSC_ARCH_ARM
+#elif defined __mips__ || defined mips || defined __MIPS__ || defined __mips
+#define OSC_ARCH_MIPS
+#elif defined __ppc__ || defined __PPC__ || defined __PPC || defined _ARCH_PPC || defined __powerpc__ || defined __ppc64__ || defined __powerpc64__
+#define OSC_ARCH_PPC
+#endif
 
 /* OSC_ARCH_* needs to be defined to get working binary file */
 

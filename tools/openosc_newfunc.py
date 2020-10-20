@@ -36,6 +36,7 @@ LEVEL_4 = 4
 args = None
 g_functions = []
 g_magic_word = 0x1122334455667700
+#g_magic_word = 0x00800100
 g_magic_words = dict()
 g_magic_alignment = 8      # bits reserved for each function
 g_outfile = None
@@ -54,8 +55,12 @@ def rtd_parse_options():
                     version=VERSION)
     parser.add_argument("-f", "--functions",
                     help = "a list of function names separated by comma")
+    parser.add_argument('-t', '--magictype',
+                    help = "the type of magic word, either or byte_inline or dwarf_loc")
+    parser.add_argument('-a', '--alignment',
+                    help = "the magic word alignment for functions, the default is 8 bits aligned")
     parser.add_argument('-m', '--magicword',
-                    help = "the 8-byte OSC Metrics magic word to start, like 0x4d41474943d30100")
+                    help = "the 8-byte OSC Metrics magic word to start, like 0x4d41474943d30100 or 4-byte like 134217985")
     parser.add_argument('-p', '--prototype',
                     help = "the function prototype")
     parser.add_argument('-i', '--inputfile',
@@ -83,6 +88,10 @@ def rtd_parse_options():
     if args.functions:
         g_functions = args.functions.split(',')
 
+    global g_magic_alignment
+    if args.alignment:
+        g_magic_alignment = int(args.alignment, 0)
+
     global g_magic_word
     if args.magicword:
         g_magic_word = get_wrap_magic_word( int(args.magicword, 0), g_magic_alignment )
@@ -95,10 +104,10 @@ def rtd_parse_options():
     if args.outputfile:
         g_outfile = open(args.outputfile, "a")
 
-    print "Your command line is:"
-    print " ".join(sys.argv)
-    print "The current directory is: " + os.getcwd()
-    print
+    print("Your command line is:")
+    print(" ".join(sys.argv))
+    print("The current directory is: " + os.getcwd())
+    print("")
 
 
 #
@@ -119,7 +128,7 @@ def verbose(string, level, indent=None):
                     indent = " " * level
                 else:
                     indent = "     "
-            print indent + string
+            print(indent + string)
         return
 
 
@@ -149,8 +158,8 @@ def save_json_db(db_file, db, indentation=4):
     try:
         f = open(db_file, 'w')
     except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
-        print "Error in save_json_db, skipping it."
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        print("Error in save_json_db, skipping it.")
     else:
         with f:
             json.dump(db, f, indent=indentation, sort_keys=True)
@@ -212,9 +221,9 @@ def generate_openosc_redefine_map_code_new(prototype):
     :returns the code as a long string.
     '''
     (retval, funcname, params) = get_func_params_from_prototype(prototype)
-    print HDR1
-    print "Now generating OpenOSC Macro Redefine mapping code for: " + funcname
-    print HDR1
+    print(HDR1)
+    print("Now generating OpenOSC Macro Redefine mapping code for: " + funcname)
+    print(HDR1)
     magic_str = '_CASE3'
     va_args_code = generate_va_args_redefine_code(funcname, params, magic_str)
     if not va_args_code:
@@ -228,7 +237,7 @@ def generate_openosc_redefine_map_code_new(prototype):
     code += '#elif !defined __cplusplus\n\n'
     code += va_args_code
     code += '\n#endif\n\n'
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_redefine_map.h", code)
     return code
 
@@ -245,9 +254,9 @@ def generate_openosc_redefine_map_code(prototype):
     comma_params = get_comma_joined_param_names(params)
     if "..." in params:
         return "printf_like"
-    #print HDR1
-    #print "Now generating OpenOSC Macro Redefine mapping code for: " + funcname
-    #print HDR1
+    #print(HDR1)
+    #print("Now generating OpenOSC Macro Redefine mapping code for: " + funcname)
+    #print(HDR1)
     code = '/* Mapping for '  + funcname + ' */\n\nextern '
     code += retval
     code += '\n__' + funcname + '_to_buf(size_t dest_len, ' + params + ');\n\n'
@@ -260,7 +269,7 @@ def generate_openosc_redefine_map_code(prototype):
         code += generate_osc_redefine_macro_code(funcname, params)
         code += '\n'
         openosc_write_filename("openosc_fortify_redefine_map.h", code)
-        print code
+        print(code)
         return code
     bosc_check_type = "OSC_OBJECT_SIZE_CHECK_0"
     if "char" in dest_type or "wchar_t" in dest_type:
@@ -288,7 +297,7 @@ def generate_openosc_redefine_map_code(prototype):
     code += '}\n\n'
     code += generate_osc_redefine_macro_code(funcname, params)
     code += '\n'
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_redefine_map.h", code)
     return code
 
@@ -300,9 +309,9 @@ def generate_openosc_redirect_map_code_new(prototype):
     :returns the code as a long string.
     '''
     (retval, funcname, params) = get_func_params_from_prototype(prototype)
-    print HDR1
-    print "Now generating OpenOSC ASM-Label Redirect Mapping code for: " + funcname
-    print HDR1
+    print(HDR1)
+    print("Now generating OpenOSC ASM-Label Redirect Mapping code for: " + funcname)
+    print(HDR1)
     magic_str = '_CASE3'
     va_args_code = generate_va_args_redefine_code(funcname, params, magic_str)
     if not va_args_code:
@@ -314,7 +323,7 @@ def generate_openosc_redirect_map_code_new(prototype):
     code += '#elif !defined __cplusplus\n\n'
     code += va_args_code
     code += '\n#endif\n\n'
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_redirect_map.h", code)
     return code
 
@@ -331,9 +340,9 @@ def generate_openosc_redirect_map_code(prototype):
     comma_params = get_comma_joined_param_names(params)
     if "..." in params:
         return "printf_like"
-    #print HDR1
-    #print "Now generating OpenOSC ASM-Label Redirect Mapping code for: " + funcname
-    #print HDR1
+    #print(HDR1)
+    #print("Now generating OpenOSC ASM-Label Redirect Mapping code for: " + funcname)
+    #print(HDR1)
     code = '/* Mapping for '  + funcname + ' */\n\nextern '
     code += retval
     code += '\n__' + funcname + '_to_buf(size_t dest_len, ' + params + ');\n'
@@ -347,7 +356,7 @@ def generate_openosc_redirect_map_code(prototype):
     if not dest_param:
         code += '    return (' + funcname_up + '_CASE3 __' + funcname + '_to_buf(OPENOSC_USE_FORTIFY_LEVEL - 1, ' + comma_params + '));\n'
         code += '}\n\n'
-        print code
+        print(code)
         openosc_write_filename("openosc_fortify_redirect_map.h", code)
         return code
     bosc_check_type = "OSC_OBJECT_SIZE_CHECK_0"
@@ -374,7 +383,7 @@ def generate_openosc_redirect_map_code(prototype):
         code += '            ? (' + funcname_up + '_CASE3 __' + funcname + '_to_buf(_sz, ' + comma_params + '))\n'
         code += '            : (' + funcname_up + '_CASE4 __openosc_' + funcname + '_alias(' + comma_params + ')));\n'
     code += '}\n\n'
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_redirect_map.h", code)
     return code
 
@@ -487,7 +496,7 @@ def get_byte_array_of_magic_word(magic):
     for i in range(8):
         byte_list.append(hex(m & 0xff))
         m = m >> 8
-    #print byte_list
+    #print(byte_list)
     byte_array = ", ".join(byte_list[::-1])
     return byte_array
 
@@ -545,6 +554,8 @@ def generate_curioscan_code(funcname, int_magic):
         if i == 0:
             magictype = "MAGIC_FUNC_NOMAPPING_MAGIC"
         hex_magic = get_hex_string_of_int_magic(magic)
+        if args.magictype == 'dwarf_loc': # .loc just uses decimal number
+            hex_magic = str(magic - 1)
         code += "        '" + hex_magic + "': '" + magictype + str(i) + "',\n"
     code += "    },\n"
     return code
@@ -558,12 +569,16 @@ def generate_nomap_magic_code_for_func(funcname, int_magic=0, macrotype=''):
     :param macrotype: MAGIC/CASE/
     :returns the generated code
     '''
-    print "Now generating OpenOSC nomap magic code for function " + funcname + " with MAGIC word: " + hex(int_magic) + " for macro-type: " + macrotype
+    print("Now generating OpenOSC nomap magic code for function " + funcname + " with MAGIC word: " + hex(int_magic) + " for macro-type: " + macrotype)
     func_up = funcname.upper()
     code = ''
     if macrotype == 'MAGIC':
-        code += '#define ' + func_up + '_NOMAP_MAGIC' + '\t\tOSC_JUMPOVER ".byte '
-        code += get_byte_array_of_magic_word(int_magic) + '\\n" OSC_JUMPLABEL\n'
+        if args.magictype == 'dwarf_loc':
+            code += '#define ' + func_up + '_NOMAP_MAGIC' + '\t\t".loc 1 '
+            code += str(int_magic - 1) + '"\n'
+        else:
+            code += '#define ' + func_up + '_NOMAP_MAGIC' + '\t\tOSC_JUMPOVER ".byte '
+            code += get_byte_array_of_magic_word(int_magic) + '\\n" OSC_JUMPLABEL\n'
         int_magic += 1
         update_global_magic_word(int_magic)
     elif macrotype == 'CASE':
@@ -594,14 +609,18 @@ def generate_map_magic_code_for_func(funcname, int_magic=0, macrotype=''):
     :param macrotype: MAGIC/CASE/
     :returns the generated code
     '''
-    print "Now generating OpenOSC map magic code for function " + funcname + " with MAGIC word: " + hex(int_magic) + " for macro-type: " + macrotype
+    print("Now generating OpenOSC map magic code for function " + funcname + " with MAGIC word: " + hex(int_magic) + " for macro-type: " + macrotype)
     has_dest = has_dest_param(funcname)
     func_up = funcname.upper()
     code = ''
     if macrotype == 'MAGIC':
         for i in range(4):
-            code += '#define ' + func_up + '_MAGIC' + str(i+1) + '\t\tOSC_JUMPOVER ".byte '
-            code += get_byte_array_of_magic_word(int_magic) + '\\n" OSC_JUMPLABEL\n'
+            if args.magictype == 'dwarf_loc':
+                code += '#define ' + func_up + '_MAGIC' + str(i+1) + '\t\t".loc 1 '
+                code += str(int_magic - 1) + '"\n'
+            else:
+                code += '#define ' + func_up + '_MAGIC' + str(i+1) + '\t\tOSC_JUMPOVER ".byte '
+                code += get_byte_array_of_magic_word(int_magic) + '\\n" OSC_JUMPLABEL\n'
             int_magic += 1
         update_global_magic_word(int_magic)
     elif macrotype == 'CASE':
@@ -621,7 +640,7 @@ def generate_map_magic_code_for_func(funcname, int_magic=0, macrotype=''):
 '''
 This function is Not used any more.
 def generate_map_magic_code(funcname, int_magic):
-    #print "Now generating OpenOSC map magic code for function " + funcname + " with MAGIC word: " + hex(int_magic)
+    #print("Now generating OpenOSC map magic code for function " + funcname + " with MAGIC word: " + hex(int_magic))
     func_up = funcname.upper()
     code = '#ifdef OSC_METRIC_FEATURE_ENABLED\n'
     for i in range(4):
@@ -893,8 +912,8 @@ def generate_osc_mapping_func_body_with_va_arg_pack(funcname, magic_str):
         (dest_type, dest_param, copylen, src_type, src_param) = analyze_func_params(chk_params)
         if "char" in dest_type or "wchar_t" in dest_type:
             bosc_check_type = "OSC_OBJECT_SIZE_CHECK_1"
-        #print "yongkuiyongkui: prototype: " + prototype
-        #print "yongkuiyongkui: dest_param: " + dest_param
+        #print("yongkuiyongkui: prototype: " + prototype)
+        #print("yongkuiyongkui: dest_param: " + dest_param)
         code += '    size_t _sz = __builtin_object_size(' + dest_param + ', ' + bosc_check_type + ');\n'
     #code += '    return (' + funcname.upper() + '_NOMAP_CASE '
     code += '    return (' + funcname.upper() + magic_str + ' '
@@ -923,13 +942,13 @@ def generate_osc_nomap_func_redirect(retval, funcname, params):
     '''
     Generate both the code for NOMAP ASM-Label redirect mechanism. Also write the code to .h file.
     '''
-    print HDR1
-    print "Now generating OpenOSC nomap code for ASM-label redirect method for: " + funcname
-    print HDR1
+    print(HDR1)
+    print("Now generating OpenOSC nomap code for ASM-label redirect method for: " + funcname)
+    print(HDR1)
     code = '\n'
     code += '/* Mapping for ' + funcname + ' */\n\n'
     code += generate_gnu_redirect_func_body_new(retval, funcname, params)
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_redirect_nomap.h", code)
     return code
 
@@ -939,14 +958,14 @@ def generate_osc_nomap_func_redefine(retval, funcname, params):
     Generate both the always_inline function body of the function that calls the NOMAP original function
     and the function macro define code for macro redefine mechanism. Also write the code to .h file.
     '''
-    print HDR1
-    print "Now generating OpenOSC nomap code for macro define method for: " + funcname
-    print HDR1
+    print(HDR1)
+    print("Now generating OpenOSC nomap code for macro define method for: " + funcname)
+    print(HDR1)
     code = '\n'
     code += '/* Mapping for ' + funcname + ' */\n\n'
     code += generate_osc_mapping_func_body_new(retval, funcname, params)
     #code += generate_osc_redefine_macro_code(funcname, params)
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_redefine_nomap.h", code)
     return code
 
@@ -956,15 +975,15 @@ def generate_osc_nomap_code(prototype, int_magic):
     Generate NOMAP code for both ASM-Label Redirect method and Function-Macro Redefine method.
     Write the generated code to openosc_fortify_redirect_nomap.h and openosc_fortify_redefine_nomap.h files.
     '''
-    print HDR2
-    print "Now generating OpenOSC nomap code for: " + prototype
-    print HDR2
+    print(HDR2)
+    print("Now generating OpenOSC nomap code for: " + prototype)
+    print(HDR2)
     (retval, funcname, params) = get_func_params_from_prototype(prototype)
     code = ''
     code += '\n'
     code += generate_osc_nomap_func_redirect(retval, funcname, params)
     code += generate_osc_nomap_func_redefine(retval, funcname, params)
-    #print code
+    #print(code)
     return code
 
 
@@ -976,16 +995,16 @@ def generate_osc_map_code(prototype, int_magic):
     :param int_magic: 64bit integer magic word
     :returns the generated code
     '''
-    print HDR2
-    print "Now generating OpenOSC map code for: " + prototype
-    print HDR2
+    print(HDR2)
+    print("Now generating OpenOSC map code for: " + prototype)
+    print(HDR2)
     (retval, funcname, params) = get_func_params_from_prototype(prototype)
     code = ''
     code += '\n'
     code += generate_openosc_redefine_map_code_new(prototype)
     code += generate_openosc_redirect_map_code_new(prototype)
-    #print code
-    #print HDR2
+    #print(code)
+    #print(HDR2)
     return code
 
 
@@ -1069,6 +1088,32 @@ fortify_functions2 = [
 "sprintf",
 "swprintf",
 "wprintf"
+]
+
+initial_osc_functions = [
+"memcpy",
+"memmove",
+"memset",
+"bcopy",
+"bzero",
+"strcpy",
+"strncpy",
+"strcat",
+"strncat",
+"strnlen",
+"vsnprintf",
+]
+
+initial_safec_functions = [
+"memcmp_s",
+"memcpy_s",
+"strcat_s",
+"strcmp_s",
+"strcpy_s",
+"strncat_s",
+"strncpy_s",
+"strnlen_s",
+"strstr_s",
 ]
 
 fortify_functions = [
@@ -1242,7 +1287,7 @@ def generate_functions_runtime_check_macro_code(functions):
     :param functions: a list of function names.
     "returns the generated code
     '''
-    print "Now generating runtime check MACRO code for " + str(len(functions)) + " functions.\n"
+    print("Now generating runtime check MACRO code for " + str(len(functions)) + " functions.\n")
     code = ''
     code += osc_runtime_check_macro_template
     for func in functions:
@@ -1257,7 +1302,7 @@ def generate_functions_runtime_check_macro_code(functions):
             continue
         code += generate_osc_original_runtime_check_macro(prototype)
     code += '\n#endif  /* OSC_RUNTIME_CHK */\n'
-    #print code
+    #print(code)
     #openosc_write_file(g_outfile, code)
     return code
 
@@ -1268,7 +1313,7 @@ def generate_functions_compiletime_check_macro_code(functions):
     :param functions: a list of function names.
     "returns the generated code
     '''
-    print "Now generating compile time check MACRO code for " + str(len(functions)) + " functions.\n"
+    print("Now generating compile time check MACRO code for " + str(len(functions)) + " functions.\n")
     code = ''
     code += osc_compiletime_check_macro_template
     code += '\n'
@@ -1276,8 +1321,8 @@ def generate_functions_compiletime_check_macro_code(functions):
     for func in functions:
         prototype = get_func_prototype_from_man(func)
         index += 1
-        print "Function Index: " + str(index)
-        print func + " ==> " + prototype
+        print("Function Index: " + str(index))
+        print(func + " ==> " + prototype)
         if not prototype or "..." in prototype:
             continue
         code += generate_osc_compiletime_check_macro(prototype, 'OSC_ASSERT_USE_ERR_ATTR')
@@ -1300,7 +1345,7 @@ def generate_functions_compiletime_check_macro_code(functions):
             continue
         code += generate_osc_compiletime_check_macro(prototype, 'OSC_ASSERT_USE_NONE')
     code += osc_compiletime_check_macro_end
-    #print code
+    #print(code)
     #openosc_write_file(g_outfile, code)
     return code
 
@@ -1323,7 +1368,7 @@ def generate_functions_map_magic_macro_code(functions, int_magic=0):
     for func in functions:
         code += generate_map_magic_code_for_func(func, g_magic_words[func] + 2)
     code += '\n#endif  /* OSC_METRIC_FEATURE_ENABLED */\n'
-    #print code
+    #print(code)
     openosc_write_filename("openosc_fortify_map_metric.h", code)
     return code
 
@@ -1345,7 +1390,7 @@ def generate_functions_nomap_magic_macro_code(functions, int_magic=0):
     for func in functions:
         code += generate_nomap_magic_code_for_func(func, g_magic_words[func] + 2)
     code += '\n#endif  /* OSC_METRIC_FEATURE_ENABLED */\n'
-    #print code
+    #print(code)
     openosc_write_filename("openosc_fortify_nomap_metric.h", code)
     return code
 
@@ -1427,7 +1472,7 @@ def delete_all_generated_code_files():
     for afile in files:
         cmd += afile + ' '
     cmd += ' || true'
-    print cmd
+    print(cmd)
     output = subprocess.check_output(cmd, shell=True, stderr=open(os.devnull, 'w'))
     return
 
@@ -1533,21 +1578,21 @@ def generate_fortify_functions_real_code(functions):
         include_lines = get_func_include_from_man(func)
         prototype = get_func_prototype_from_man(func)
         index += 1
-        print "Function Index: " + str(index)
-        print include_lines
-        print func + " ==> " + prototype
+        print("Function Index: " + str(index))
+        print(include_lines)
+        print(func + " ==> " + prototype)
         if not prototype:
             like_which = 'no_prototype'
             which_db.setdefault(like_which, [0, []])
             which_db[like_which][0] += 1
             which_db[like_which][1].append(func)
-            print "No function prototype found for " + func + ", Please specify prototype via -p option."
-            print
+            print("No function prototype found for " + func + ", Please specify prototype via -p option.")
+            print("")
             continue
         like_which = "like_default"
         #if "..." in prototype:
         if False:
-            print "This is printf-like function, skip it\n"
+            print("This is printf-like function, skip it\n")
             like_which = "like_printf"
         else:
             generate_osc_nomap_code(prototype, get_wrap_magic_word(g_magic_word, g_magic_alignment)+1)
@@ -1563,9 +1608,9 @@ def generate_fortify_functions_real_code(functions):
         else:
             which_db[like_which] = 1
         '''
-    print "Some stats regarding all fortified functions"
-    #print which_db
-    print json.dumps(which_db, indent=4, sort_keys=True)
+    print("Some stats regarding all fortified functions")
+    #print(which_db)
+    print(json.dumps(which_db, indent=4, sort_keys=True))
     #save_json_db(RESULT_JSON_FILE, which_db)
     #save_json_db("openosc_fortify_functions.json", which_db)
 
@@ -1876,9 +1921,9 @@ def generate_runtime_check_code(prototype):
     (dest_type, dest_param, copylen, src_type, src_param) = analyze_func_params(params)
     if "..." in params:
         return "like_printf"
-    print HDR1
-    print "Now generating code for runtime check code for: " + prototype
-    print HDR1
+    print(HDR1)
+    print("Now generating code for runtime check code for: " + prototype)
+    print(HDR1)
     code = '/* Mapping for '  + funcname + ' */\n\n'
     code += retval
     code += '\n__' + funcname + '_to_buf (size_t dest_len, ' + params + ')'
@@ -1905,9 +1950,9 @@ def generate_runtime_check_code(prototype):
     code += code2
     comma_params = get_comma_joined_param_names(params)
     code += '\n    return (' + funcname + '(' + comma_params + '));\n}\n\n'
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_map.c", code)
-    print HDR2
+    print(HDR2)
     return like_which
 
 
@@ -2007,9 +2052,9 @@ def generate_runtime_check_code2(prototype):
     :returns the like-which type of this function prototype.
     '''
     (retval, funcname, params) = get_func_params_from_prototype(prototype)
-    print HDR1
-    print "Now generating code for runtime check code for: " + prototype
-    print HDR1
+    print(HDR1)
+    print("Now generating code for runtime check code for: " + prototype)
+    print(HDR1)
     if "..." in params:
         print("There is no runtime check code for ... printf-like function!\n")
         return "printf_like"
@@ -2075,9 +2120,9 @@ def generate_runtime_check_code2(prototype):
         code += '\n    return (' + glibc_funcname + '(' + new_comma_params + '));\n}\n\n'
     else:
         code += '\n    return (' + funcname + '(' + comma_params + '));\n}\n\n'
-    print code
+    print(code)
     openosc_write_filename("openosc_fortify_map.c", code)
-    print HDR2
+    print(HDR2)
     return like_which
 
 
@@ -2148,7 +2193,7 @@ def get_func_params_from_prototype(prototype):
         loc = newproto.rfind(' ')
     funcname = newproto[(loc + 1):].strip()
     retval = newproto[:(loc + 1)]
-    #print (retval, funcname, params)
+    #print((retval, funcname, params))
     return (retval, funcname, params)
 
 
@@ -2208,7 +2253,7 @@ def analyze_func_params(params):
     (dest_type, dest_param) = get_dest_param(params)
     (src_type, src_param) = get_src_param(params)
     len_param = get_copylen_param(params)
-    #print "Dest param type: " + dest_type + "Dest param: " + dest_param + " Length: " + len_param + " Src param type: " + src_type + " Src param: " + src_param
+    #print("Dest param type: " + dest_type + "Dest param: " + dest_param + " Length: " + len_param + " Src param type: " + src_type + " Src param: " + src_param)
     if src_param == dest_param:
         src_param = ""
         src_type = ""
@@ -2225,7 +2270,7 @@ def get_copylen_param(params):
     tokens = params.split(',')
     for token in tokens:
         token = token.strip()
-        #print token
+        #print(token)
         if token == "...":
             continue
         (param_type, param_name) = get_type_name_from_param(token)
@@ -2235,8 +2280,8 @@ def get_copylen_param(params):
             return param_name
         if "size" in param_type or "size" == param_name:
             token_list.append(token)
-    #print "All the candidate parameters for copy length or buffer size are:"
-    #print token_list
+    #print("All the candidate parameters for copy length or buffer size are:")
+    #print(token_list)
     if token_list:
         (param_type, param_name) = get_type_name_from_param(token_list[0])
         return param_name
@@ -2253,7 +2298,7 @@ def get_dest_param(params):
     tokens = params.split(',')
     for token in tokens:
         token = token.strip()
-        #print token
+        #print(token)
         if token == "...":
             continue
         (param_type, param_name) = get_type_name_from_param(token)
@@ -2262,8 +2307,8 @@ def get_dest_param(params):
         if param_name == "dest" or param_name == "dst" or param_name == "destination":
             return (param_type, param_name)
         token_list.append(token)
-    #print "All the candidate parameters for destinationn param are:"
-    #print token_list
+    #print("All the candidate parameters for destinationn param are:")
+    #print(token_list)
     if token_list:
         (param_type, param_name) = get_type_name_from_param(token_list[0])
         return (param_type, param_name)
@@ -2280,7 +2325,7 @@ def get_src_param(params):
     tokens = params.split(',')
     for token in tokens:
         token = token.strip()
-        #print token
+        #print(token)
         if token == "...":
             continue
         (param_type, param_name) = get_type_name_from_param(token)
@@ -2289,8 +2334,8 @@ def get_src_param(params):
         if param_name == "src" or param_name == "source":
             return (param_type, param_name)
         token_list.append(token)
-    #print "All the candidate parameters for source param are:"
-    #print token_list
+    #print("All the candidate parameters for source param are:")
+    #print(token_list)
     if token_list:
         (param_type, param_name) = get_type_name_from_param(token_list[0])
         return (param_type, param_name)
@@ -2305,9 +2350,9 @@ def get_man_section_func_output(func, section):
     :returns the command output as a string.
     '''
     cmd = 'man ' + section + ' ' + func + ' | cat '
-#     print cmd
+#     print(cmd)
     output = subprocess.check_output(cmd, shell=True, stderr=open(os.devnull, 'w'))
-    #print output
+    #print(output)
     #files = output.splitlines()
     return output
 
@@ -2399,9 +2444,9 @@ def get_func_include_from_man(func):
 
 def print_func_prototype(func):
     prototype = get_func_prototype_from_man(func)
-    print prototype
+    print(prototype)
     (retval, func, params) = get_func_params_from_prototype(prototype)
-    print get_dest_param(params)
+    print(get_dest_param(params))
 
 
 def read_file_lines(afile):
@@ -2426,7 +2471,7 @@ def update_prototype_db(func, prototype, inc_lines, prototype_db, include_db):
     Update prototype DB and include DB with prototype and inc_lines.
     '''
     if func in prototype_db:
-        print "Duplicate functions found: " + func
+        print("Duplicate functions found: " + func)
     prototype_db[func] = prototype
     if include_db is not None:
         include_db[func] = inc_lines
@@ -2461,8 +2506,8 @@ def read_prototype_lines(lines, prototype_db, include_db):
                 update_prototype_db(func, prototype, inc_lines, prototype_db, include_db)
                 inc_lines = []
                 prototype = ''
-    #print g_prototype_db
-    #print g_include_db
+    #print(g_prototype_db)
+    #print(g_include_db)
     return functions
 
 
@@ -2538,29 +2583,31 @@ def get_all_functions():
         funcs = read_prototype_file(args.inputfile)
         functions.extend(funcs)
     alignment_size = (1 << g_magic_alignment)
-    print "MAGIC word start: " + hex(g_magic_word) + " alignment size for function is: " + str(alignment_size)
+    print("MAGIC word start: " + hex(g_magic_word) + " alignment size for function is: " + str(alignment_size))
     if not functions:
-        functions = fortify_functions
+        functions = initial_osc_functions
+        functions.extend(fortify_functions)
+        functions.extend(initial_safec_functions)
     if functions:
         delete_all_generated_code_files()
         i = 0
         for func in functions:
             g_magic_words[func] = g_magic_word + i * alignment_size
             i += 1
-        print g_magic_words
+        print(g_magic_words)
         code = ''
         for func in functions:
-            print "Generating curioscan code for function " + func
+            print("Generating curioscan code for function " + func)
             code += generate_curioscan_code(func, g_magic_words[func])
         # the code in openosc_fortify_magics_curioscan can be directly copied into Curioscan,
         # then Curioscan will be able to recognize/scan magic words for the generated functions.
         openosc_write_filename("openosc_fortify_magics_curioscan", code)
-    print "Here are all the funciotns to fortify: "
-    print functions
+    print("Here are all the funciotns to fortify: ")
+    print(functions)
     ## Add support for calling glibc print_chk functions
     lines = glibc_print_chk_functions_prototype.splitlines()
     read_prototype_lines(lines, glibc_print_chk_prototype_db, None)
-    #print glibc_print_chk_prototype_db
+    #print(glibc_print_chk_prototype_db)
     return functions
 
 
@@ -2572,7 +2619,7 @@ def main():
     generate_fortify_functions_code(functions)
     #test_function()
     #test_fortify_function()
-    print "OK it is done"
+    print("OK it is done")
 
 
 if __name__ == '__main__':

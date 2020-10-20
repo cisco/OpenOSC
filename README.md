@@ -88,10 +88,28 @@ Additionally, the objsize-METRICS feature can be enabled by the below:
 
     CFLAGS += "-DOPENOSC_METRIC_OBJSIZE_ENABLED"
 
+Two OSC-watermarking methods are supported in OpenOSC:
+
+    #define RTD_ASM_BYTE_METHOD 1
+    #define RTD_ASM_LOC_METHOD 2
+
+The default method is RTD_ASM_LOC_METHOD. This method uses DWARF debugging info,
+so it requires the `-g` CFLAGS to take effect. And the OSC-METRICS info can be
+stripped via the strip command, just like other debugging info. The other method
+RTD_ASM_BYTE_METHOD directly inserts MAGIC words into the code, so it occupies
+code memory, and does not require `-g` CFLAGS to take effect, also OSC-METRICS
+info cannot be stripped. You can add "-DOPENOSC_METRIC_METHOD=1" to CFLAGS to
+force using the RTD_ASM_BYTE_METHOD.
+
 After building your binaries with the above CFLAGS, You can run the oscmetrics
 tool to collect the OSC-METRICS:
 
     $ tools/oscmetrics.py -bmwv -d your-dir > metrics-report.txt
+
+If the non-default RTD_ASM_BYTE_METHOD is used to generate OSC-METRICs info,
+then you need to add the `-t` option to specify the type:
+
+    $ tools/oscmetrics.py -bmwv -d your-dir -t byte_inline > metrics-report.txt
 
 It can generate a WatermarkPC decoding table as below:
 

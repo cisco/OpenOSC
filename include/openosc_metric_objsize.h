@@ -11,9 +11,174 @@
 #define __OPENOSC_METRIC_OBJSIZE_H__
 
 /* The single flag to enable/disable this feature */
-//#define OPENOSC_METRIC_OBJSIZE_ENABLED
+/* #define OPENOSC_METRIC_OBJSIZE_ENABLED */
 
 #ifdef OPENOSC_METRIC_OBJSIZE_ENABLED
+
+#if (RTD_OSC_METRIC_METHOD == RTD_ASM_LOC_METHOD)
+
+/*
+ * The below macro is used to encode the partial bits of a constant.
+ * 8388608 is 0x00800000 in hexadecimal, and 8388623 is 0x0080000f in hexadecimal.
+ * the last 4bits is the encoded value for partial N-bits of the constant.
+ * The range must not overlap with any magic values for a specific function-case.
+ */
+#define OSC_ASM_LOC0 ({__asm__(".loc 1 8388608");})
+#define OSC_ASM_LOC1 ({__asm__(".loc 1 8388609");})
+#define OSC_ASM_LOC2 ({__asm__(".loc 1 8388610");})
+#define OSC_ASM_LOC3 ({__asm__(".loc 1 8388611");})
+#define OSC_ASM_LOC4 ({__asm__(".loc 1 8388612");})
+#define OSC_ASM_LOC5 ({__asm__(".loc 1 8388613");})
+#define OSC_ASM_LOC6 ({__asm__(".loc 1 8388614");})
+#define OSC_ASM_LOC7 ({__asm__(".loc 1 8388615");})
+#define OSC_ASM_LOC8 ({__asm__(".loc 1 8388616");})
+#define OSC_ASM_LOC9 ({__asm__(".loc 1 8388617");})
+#define OSC_ASM_LOC10 ({__asm__(".loc 1 8388618");})
+#define OSC_ASM_LOC11 ({__asm__(".loc 1 8388619");})
+#define OSC_ASM_LOC12 ({__asm__(".loc 1 8388620");})
+#define OSC_ASM_LOC13 ({__asm__(".loc 1 8388621");})
+#define OSC_ASM_LOC14 ({__asm__(".loc 1 8388622");})
+#define OSC_ASM_LOC15 ({__asm__(".loc 1 8388623");})
+
+/*
+ * The below macro denotes the end of the encoding for a constant.
+ * 8388607 is 0x007fffff in hexadecimal.
+ * the LOC_LEN_END and LOC_LEN_START values should be close to the above LOCn values.
+ */
+#define OSC_ASM_LOC_LEN_END ({__asm__(".loc 1 8388607");})
+
+/*
+ * The below macro denotes the start of the encoding for a constant.
+ * the first is num_bytes, and the second is bits_per_loc.
+ * num_bytes can be 1,2,4,8, bits_per_loc can be 1,2,4
+ * 8388592 is 0x007ffff0 in hexadecimal, this is the smallest line value for our DWARF_LINE method.
+ */
+#define OSC_ASM_LOC_LEN_START_1_1 ({__asm__(".loc 1 8388592");})
+#define OSC_ASM_LOC_LEN_START_1_2 ({__asm__(".loc 1 8388593");})
+#define OSC_ASM_LOC_LEN_START_1_4 ({__asm__(".loc 1 8388594");})
+
+#define OSC_ASM_LOC_LEN_START_2_1 ({__asm__(".loc 1 8388595");})
+#define OSC_ASM_LOC_LEN_START_2_2 ({__asm__(".loc 1 8388596");})
+#define OSC_ASM_LOC_LEN_START_2_4 ({__asm__(".loc 1 8388597");})
+
+#define OSC_ASM_LOC_LEN_START_4_1 ({__asm__(".loc 1 8388598");})
+#define OSC_ASM_LOC_LEN_START_4_2 ({__asm__(".loc 1 8388599");})
+#define OSC_ASM_LOC_LEN_START_4_4 ({__asm__(".loc 1 8388600");})
+
+#define OSC_ASM_LOC_LEN_START_8_1 ({__asm__(".loc 1 8388601");})
+#define OSC_ASM_LOC_LEN_START_8_2 ({__asm__(".loc 1 8388602");})
+#define OSC_ASM_LOC_LEN_START_8_4 ({__asm__(".loc 1 8388603");})
+
+/*
+ * The below macro denotes the start of the encoding for a constant.
+ * the first parameter num_bytes is number of total bytes for this constant,
+ * the second parameter bits_per_loc is how many bits are encoded in each .loc line.
+ */
+#define OSC_ASM_LOC_LEN_START(num_bytes, bits_per_loc) OSC_ASM_LOC_LEN_START_ ## num_bytes ## _ ## bits_per_loc
+
+/* encode the last 1, 2, or 4 bits of sz */
+#define OSC_LOC_1BIT(sz) (sz & 1) ? OSC_ASM_LOC1 : OSC_ASM_LOC0
+#define OSC_LOC_2BIT(sz) (sz & 2) ? ((sz & 1) ? OSC_ASM_LOC3 : OSC_ASM_LOC2) : ((sz & 1) ? OSC_ASM_LOC1 : OSC_ASM_LOC0)
+#define OSC_LOC_4BIT(sz) (sz & 8) ? ((sz & 4) ? ((sz & 2) ? ((sz & 1) ? OSC_ASM_LOC15 : OSC_ASM_LOC14) : ((sz & 1) ? OSC_ASM_LOC13 : OSC_ASM_LOC12)) : ((sz & 2) ? ((sz & 1) ? OSC_ASM_LOC11 : OSC_ASM_LOC10) : ((sz & 1) ? OSC_ASM_LOC9 : OSC_ASM_LOC8))) : ((sz & 4) ? ((sz & 2) ? ((sz & 1) ? OSC_ASM_LOC7 : OSC_ASM_LOC6) : ((sz & 1) ? OSC_ASM_LOC5 : OSC_ASM_LOC4)) : ((sz & 2) ? ((sz & 1) ? OSC_ASM_LOC3 : OSC_ASM_LOC2) : ((sz & 1) ? OSC_ASM_LOC1 : OSC_ASM_LOC0)))
+
+/* encode the last 1, 2, or 4 bits of sz after right-shifting N bits */
+#define OSC_ASM_LOC_1BIT(sz, n) OSC_LOC_1BIT(sz >> n)
+#define OSC_ASM_LOC_2BIT(sz, n) OSC_LOC_2BIT(sz >> n)
+#define OSC_ASM_LOC_4BIT(sz, n) OSC_LOC_4BIT(sz >> n)
+
+/*
+ * This macro encodes the last 1, 2, or 4 bits of sze after right-shifting N bits.
+ * The first parameter is sz, the second parameter is number of bits to right-shift,
+ * and the third parameter is how many bits to encode.
+ * well, this macro is not used.
+ */
+#define OSC_ASM_LOC_NBIT(sz, n, nbits) OSC_ASM_LOC_ ## nbits ## BIT(sz, n)
+
+/*
+ * Each constant encoding starts with one .loc of OSC_ASM_LOC_LEN_START(num_bytes, bits_per_loc),
+ * which tells us how many encoded bytes for this constant (8 bytes by default),
+ * and how many bits are encoded in each .loc line (4 bits/loc by default);
+ * then a few .loc lines, #lines = num_bytes * 8 / bits_per_loc (16 lines by default);
+ * and ends with one .loc of OSC_ASM_LOC_LEN_END.
+ */
+
+/* encoding N bytes with 4bits-per-loc */
+#define OSC_ASM_LOC_1BYTE_1BIT(sz) OSC_ASM_LOC_LEN_START(1,1), OSC_ASM_LOC_1BIT(sz, 0), OSC_ASM_LOC_1BIT(sz, 1), OSC_ASM_LOC_1BIT(sz, 2), OSC_ASM_LOC_1BIT(sz, 3), OSC_ASM_LOC_1BIT(sz, 4), OSC_ASM_LOC_1BIT(sz, 5), OSC_ASM_LOC_1BIT(sz, 6), OSC_ASM_LOC_1BIT(sz, 7), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_2BYTE_1BIT(sz) OSC_ASM_LOC_LEN_START(2,1), OSC_ASM_LOC_1BIT(sz, 0), OSC_ASM_LOC_1BIT(sz, 1), OSC_ASM_LOC_1BIT(sz, 2), OSC_ASM_LOC_1BIT(sz, 3), OSC_ASM_LOC_1BIT(sz, 4), OSC_ASM_LOC_1BIT(sz, 5), OSC_ASM_LOC_1BIT(sz, 6), OSC_ASM_LOC_1BIT(sz, 7), OSC_ASM_LOC_1BIT(sz, 8), OSC_ASM_LOC_1BIT(sz, 9), OSC_ASM_LOC_1BIT(sz, 10), OSC_ASM_LOC_1BIT(sz, 11), OSC_ASM_LOC_1BIT(sz, 12), OSC_ASM_LOC_1BIT(sz, 13), OSC_ASM_LOC_1BIT(sz, 14), OSC_ASM_LOC_1BIT(sz, 15), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_4BYTE_1BIT(sz) OSC_ASM_LOC_LEN_START(4,1), OSC_ASM_LOC_1BIT(sz, 0), OSC_ASM_LOC_1BIT(sz, 1), OSC_ASM_LOC_1BIT(sz, 2), OSC_ASM_LOC_1BIT(sz, 3), OSC_ASM_LOC_1BIT(sz, 4), OSC_ASM_LOC_1BIT(sz, 5), OSC_ASM_LOC_1BIT(sz, 6), OSC_ASM_LOC_1BIT(sz, 7), OSC_ASM_LOC_1BIT(sz, 8), OSC_ASM_LOC_1BIT(sz, 9), OSC_ASM_LOC_1BIT(sz, 10), OSC_ASM_LOC_1BIT(sz, 11), OSC_ASM_LOC_1BIT(sz, 12), OSC_ASM_LOC_1BIT(sz, 13), OSC_ASM_LOC_1BIT(sz, 14), OSC_ASM_LOC_1BIT(sz, 15), OSC_ASM_LOC_1BIT(sz, 16), OSC_ASM_LOC_1BIT(sz, 17), OSC_ASM_LOC_1BIT(sz, 18), OSC_ASM_LOC_1BIT(sz, 19), OSC_ASM_LOC_1BIT(sz, 20), OSC_ASM_LOC_1BIT(sz, 21), OSC_ASM_LOC_1BIT(sz, 22), OSC_ASM_LOC_1BIT(sz, 23), OSC_ASM_LOC_1BIT(sz, 24), OSC_ASM_LOC_1BIT(sz, 25), OSC_ASM_LOC_1BIT(sz, 26), OSC_ASM_LOC_1BIT(sz, 27), OSC_ASM_LOC_1BIT(sz, 28), OSC_ASM_LOC_1BIT(sz, 29), OSC_ASM_LOC_1BIT(sz, 30), OSC_ASM_LOC_1BIT(sz, 31), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_8BYTE_1BIT(sz) OSC_ASM_LOC_LEN_START(8,1), OSC_ASM_LOC_1BIT(sz, 0), OSC_ASM_LOC_1BIT(sz, 1), OSC_ASM_LOC_1BIT(sz, 2), OSC_ASM_LOC_1BIT(sz, 3), OSC_ASM_LOC_1BIT(sz, 4), OSC_ASM_LOC_1BIT(sz, 5), OSC_ASM_LOC_1BIT(sz, 6), OSC_ASM_LOC_1BIT(sz, 7), OSC_ASM_LOC_1BIT(sz, 8), OSC_ASM_LOC_1BIT(sz, 9), OSC_ASM_LOC_1BIT(sz, 10), OSC_ASM_LOC_1BIT(sz, 11), OSC_ASM_LOC_1BIT(sz, 12), OSC_ASM_LOC_1BIT(sz, 13), OSC_ASM_LOC_1BIT(sz, 14), OSC_ASM_LOC_1BIT(sz, 15), OSC_ASM_LOC_1BIT(sz, 16), OSC_ASM_LOC_1BIT(sz, 17), OSC_ASM_LOC_1BIT(sz, 18), OSC_ASM_LOC_1BIT(sz, 19), OSC_ASM_LOC_1BIT(sz, 20), OSC_ASM_LOC_1BIT(sz, 21), OSC_ASM_LOC_1BIT(sz, 22), OSC_ASM_LOC_1BIT(sz, 23), OSC_ASM_LOC_1BIT(sz, 24), OSC_ASM_LOC_1BIT(sz, 25), OSC_ASM_LOC_1BIT(sz, 26), OSC_ASM_LOC_1BIT(sz, 27), OSC_ASM_LOC_1BIT(sz, 28), OSC_ASM_LOC_1BIT(sz, 29), OSC_ASM_LOC_1BIT(sz, 30), OSC_ASM_LOC_1BIT(sz, 31), OSC_ASM_LOC_1BIT(sz, 32), OSC_ASM_LOC_1BIT(sz, 33), OSC_ASM_LOC_1BIT(sz, 34), OSC_ASM_LOC_1BIT(sz, 35), OSC_ASM_LOC_1BIT(sz, 36), OSC_ASM_LOC_1BIT(sz, 37), OSC_ASM_LOC_1BIT(sz, 38), OSC_ASM_LOC_1BIT(sz, 39), OSC_ASM_LOC_1BIT(sz, 40), OSC_ASM_LOC_1BIT(sz, 41), OSC_ASM_LOC_1BIT(sz, 42), OSC_ASM_LOC_1BIT(sz, 43), OSC_ASM_LOC_1BIT(sz, 44), OSC_ASM_LOC_1BIT(sz, 45), OSC_ASM_LOC_1BIT(sz, 46), OSC_ASM_LOC_1BIT(sz, 47), OSC_ASM_LOC_1BIT(sz, 48), OSC_ASM_LOC_1BIT(sz, 49), OSC_ASM_LOC_1BIT(sz, 50), OSC_ASM_LOC_1BIT(sz, 51), OSC_ASM_LOC_1BIT(sz, 52), OSC_ASM_LOC_1BIT(sz, 53), OSC_ASM_LOC_1BIT(sz, 54), OSC_ASM_LOC_1BIT(sz, 55), OSC_ASM_LOC_1BIT(sz, 56), OSC_ASM_LOC_1BIT(sz, 57), OSC_ASM_LOC_1BIT(sz, 58), OSC_ASM_LOC_1BIT(sz, 59), OSC_ASM_LOC_1BIT(sz, 60), OSC_ASM_LOC_1BIT(sz, 61), OSC_ASM_LOC_1BIT(sz, 62), OSC_ASM_LOC_1BIT(sz, 63), OSC_ASM_LOC_LEN_END,
+
+
+/* encoding N bytes with 2bits-per-loc */
+#define OSC_ASM_LOC_1BYTE_2BIT(sz) OSC_ASM_LOC_LEN_START(1,2), OSC_ASM_LOC_2BIT(sz, 0), OSC_ASM_LOC_2BIT(sz, 2), OSC_ASM_LOC_2BIT(sz, 4), OSC_ASM_LOC_2BIT(sz, 6), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_2BYTE_2BIT(sz) OSC_ASM_LOC_LEN_START(2,2), OSC_ASM_LOC_2BIT(sz, 0), OSC_ASM_LOC_2BIT(sz, 2), OSC_ASM_LOC_2BIT(sz, 4), OSC_ASM_LOC_2BIT(sz, 6), OSC_ASM_LOC_2BIT(sz, 8), OSC_ASM_LOC_2BIT(sz, 10), OSC_ASM_LOC_2BIT(sz, 12), OSC_ASM_LOC_2BIT(sz, 14), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_4BYTE_2BIT(sz) OSC_ASM_LOC_LEN_START(4,2), OSC_ASM_LOC_2BIT(sz, 0), OSC_ASM_LOC_2BIT(sz, 2), OSC_ASM_LOC_2BIT(sz, 4), OSC_ASM_LOC_2BIT(sz, 6), OSC_ASM_LOC_2BIT(sz, 8), OSC_ASM_LOC_2BIT(sz, 10), OSC_ASM_LOC_2BIT(sz, 12), OSC_ASM_LOC_2BIT(sz, 14), OSC_ASM_LOC_2BIT(sz, 16), OSC_ASM_LOC_2BIT(sz, 18), OSC_ASM_LOC_2BIT(sz, 20), OSC_ASM_LOC_2BIT(sz, 22), OSC_ASM_LOC_2BIT(sz, 24), OSC_ASM_LOC_2BIT(sz, 26), OSC_ASM_LOC_2BIT(sz, 28), OSC_ASM_LOC_2BIT(sz, 30), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_8BYTE_2BIT(sz) OSC_ASM_LOC_LEN_START(8,2), OSC_ASM_LOC_2BIT(sz, 0), OSC_ASM_LOC_2BIT(sz, 2), OSC_ASM_LOC_2BIT(sz, 4), OSC_ASM_LOC_2BIT(sz, 6), OSC_ASM_LOC_2BIT(sz, 8), OSC_ASM_LOC_2BIT(sz, 10), OSC_ASM_LOC_2BIT(sz, 12), OSC_ASM_LOC_2BIT(sz, 14), OSC_ASM_LOC_2BIT(sz, 16), OSC_ASM_LOC_2BIT(sz, 18), OSC_ASM_LOC_2BIT(sz, 20), OSC_ASM_LOC_2BIT(sz, 22), OSC_ASM_LOC_2BIT(sz, 24), OSC_ASM_LOC_2BIT(sz, 26), OSC_ASM_LOC_2BIT(sz, 28), OSC_ASM_LOC_2BIT(sz, 30), OSC_ASM_LOC_2BIT(sz, 32), OSC_ASM_LOC_2BIT(sz, 34), OSC_ASM_LOC_2BIT(sz, 36), OSC_ASM_LOC_2BIT(sz, 38), OSC_ASM_LOC_2BIT(sz, 40), OSC_ASM_LOC_2BIT(sz, 42), OSC_ASM_LOC_2BIT(sz, 44), OSC_ASM_LOC_2BIT(sz, 46), OSC_ASM_LOC_2BIT(sz, 48), OSC_ASM_LOC_2BIT(sz, 50), OSC_ASM_LOC_2BIT(sz, 52), OSC_ASM_LOC_2BIT(sz, 54), OSC_ASM_LOC_2BIT(sz, 56), OSC_ASM_LOC_2BIT(sz, 58), OSC_ASM_LOC_2BIT(sz, 60), OSC_ASM_LOC_2BIT(sz, 62), OSC_ASM_LOC_LEN_END,
+
+
+/* encoding N bytes with 4bits-per-loc */
+#define OSC_ASM_LOC_1BYTE_4BIT(sz) OSC_ASM_LOC_LEN_START(1,4), OSC_ASM_LOC_4BIT(sz, 0), OSC_ASM_LOC_4BIT(sz, 4), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_2BYTE_4BIT(sz) OSC_ASM_LOC_LEN_START(2,4), OSC_ASM_LOC_4BIT(sz, 0), OSC_ASM_LOC_4BIT(sz, 4), OSC_ASM_LOC_4BIT(sz, 8), OSC_ASM_LOC_4BIT(sz, 12), OSC_ASM_LOC_LEN_END,
+
+#define OSC_ASM_LOC_4BYTE_4BIT(sz) OSC_ASM_LOC_LEN_START(4,4), OSC_ASM_LOC_4BIT(sz, 0), OSC_ASM_LOC_4BIT(sz, 4), OSC_ASM_LOC_4BIT(sz, 8), OSC_ASM_LOC_4BIT(sz, 12), OSC_ASM_LOC_4BIT(sz, 16), OSC_ASM_LOC_4BIT(sz, 20), OSC_ASM_LOC_4BIT(sz, 24), OSC_ASM_LOC_4BIT(sz, 28), OSC_ASM_LOC_LEN_END,
+
+/* the below is the default encoding: 8byte with 4bits-per-loc */
+#define OSC_ASM_LOC_8BYTE_4BIT(sz) OSC_ASM_LOC_LEN_START(8,4), OSC_ASM_LOC_4BIT(sz, 0), OSC_ASM_LOC_4BIT(sz, 4), OSC_ASM_LOC_4BIT(sz, 8), OSC_ASM_LOC_4BIT(sz, 12), OSC_ASM_LOC_4BIT(sz, 16), OSC_ASM_LOC_4BIT(sz, 20), OSC_ASM_LOC_4BIT(sz, 24), OSC_ASM_LOC_4BIT(sz, 28), OSC_ASM_LOC_4BIT(sz, 32), OSC_ASM_LOC_4BIT(sz, 36), OSC_ASM_LOC_4BIT(sz, 40), OSC_ASM_LOC_4BIT(sz, 44), OSC_ASM_LOC_4BIT(sz, 48), OSC_ASM_LOC_4BIT(sz, 52), OSC_ASM_LOC_4BIT(sz, 56), OSC_ASM_LOC_4BIT(sz, 60), OSC_ASM_LOC_LEN_END,
+
+
+/*
+ * The below macro encodes a single constant.
+ * The first parameter is sz, usually a 64bit or 8byte integer;
+ * The second parameter is nbytes, which tells us how many bytes for this integer, only 1, 2, 4, 8 are supported;
+ * The third parameter is mbits, which tells us how many bits for each .loc line, only 1, 2, 4 are supported.
+ * The default value is nbytes=8 and mbits=4, which creates 16 .loc lines for a 64bit integer.
+ */
+#define OSC_ASM_LOC_NBYTE_MBIT(sz, nbytes, mbits) OSC_ASM_LOC_ ## nbytes ## BYTE ## _ ## mbits ## BIT(sz)
+
+/* The default value for number of bytes for each constant: 8byte or 64bits */
+#define OSC_ASM_LOC_NBYTE_DEFAULT 8
+
+/*
+ * The allowed value for OPENOSC_ASM_LOC_MBIT_DEFAULT is 1, 2, 4
+ */
+#ifdef OPENOSC_ASM_LOC_MBIT_DEFAULT
+#define OSC_ASM_LOC_MBIT_DEFAULT OPENOSC_ASM_LOC_MBIT_DEFAULT
+#else
+/* The default value for number of bits of each .loc line: 4 bits */
+#define OSC_ASM_LOC_MBIT_DEFAULT 4
+#endif
+
+/* We always convert all constants to 64bits value */
+/* OSC_ASM_LOC_MBIT_DEFAULT can be configured with 1, 2, or 4 */
+#if OSC_ASM_LOC_MBIT_DEFAULT == 4
+
+#define OSC_DSTSIZE(sz) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 4)
+#define OSC_DST_LEN_SIZE(sz, len) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 4) OSC_ASM_LOC_NBYTE_MBIT((long long)len, 8, 4)
+#define OSC_DST_SRC_LEN_SIZE(sz, src_sz, len) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 4) OSC_ASM_LOC_NBYTE_MBIT((long long)src_sz, 8, 4) OSC_ASM_LOC_NBYTE_MBIT((long long)len, 8, 4)
+
+#elif OSC_ASM_LOC_MBIT_DEFAULT == 2
+
+#define OSC_DSTSIZE(sz) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 2)
+#define OSC_DST_LEN_SIZE(sz, len) OSC_ASM_LOC_NBYTE_MBIT(sz, 8, 2) OSC_ASM_LOC_NBYTE_MBIT(len, 8, 2)
+#define OSC_DST_SRC_LEN_SIZE(sz, src_sz, len) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 2) OSC_ASM_LOC_NBYTE_MBIT((long long)src_sz, 8, 2) OSC_ASM_LOC_NBYTE_MBIT((long long)len, 8, 2)
+
+#else /* OSC_ASM_LOC_MBIT_DEFAULT == 1 */
+
+#define OSC_DSTSIZE(sz) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 1)
+#define OSC_DST_LEN_SIZE(sz, len) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 1) OSC_ASM_LOC_NBYTE_MBIT((long long)len, 8, 1)
+#define OSC_DST_SRC_LEN_SIZE(sz, src_sz, len) OSC_ASM_LOC_NBYTE_MBIT((long long)sz, 8, 1) OSC_ASM_LOC_NBYTE_MBIT((long long)src_sz, 8, 1) OSC_ASM_LOC_NBYTE_MBIT((long long)len, 8, 1)
+
+#endif
+
+
+#else /* RTD_ASM_BYTE_METHOD */
 
 /* define all 256 possible __asm__ .byte instructions for a single byte */
 #define OSC_AB0     ({__asm__(".byte 0");})
@@ -294,6 +459,8 @@
 
 /* Destination buffer size, source buffer size, and copy length */
 #define OSC_DST_SRC_LEN_SIZE(sz, src_sz, len)  ({__asm__(OSC_JUMPOVER OSC_DSTSIZE_MAGIC);}), OSC_DSTSIZE2(sz), OSC_DSTSIZE2(src_sz), OSC_DSTSIZE2(len), ({__asm__(OSC_DSTSIZE_MAGIC2 OSC_JUMPLABEL);}),
+
+#endif /* (RTD_OSC_METRIC_METHOD == RTD_ASM_LOC_METHOD) */
 
 #else
 
