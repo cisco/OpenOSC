@@ -306,6 +306,8 @@ openosc_gethostname (char *name, size_t len)
 #define gethostname(name, len)		openosc_gethostname(name, len)
 
 
+#ifndef OPENOSC_GETS_DISABLE
+
 /* Mapping for gets */
 
 static inline __attribute__ ((always_inline))
@@ -317,6 +319,8 @@ openosc_gets (char *s)
 
 #undef gets
 #define gets(s)		openosc_gets(s)
+
+#endif /* OPENOSC_GETS_DISABLE */
 
 
 /* Mapping for getwd */

@@ -13,6 +13,19 @@
 
 #include "openosc_header_metric.h"
 
+/* define the object size checking type in builtin function */
+#define OSC_OBJECT_SIZE_CHECK_0 0
+#define OSC_OBJECT_SIZE_CHECK_1 1
+
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
+/* Source over-read is enabled by default, but can be disabled */
+#ifndef OPENOSC_SRC_OVERREAD_DISABLE
+#define _OPENOSC_SRC_OVERREAD_ENABLED
+#endif
+
 /*
  * There are two methods to remap a function to openosc_* function:
  *   1. The function redirect via ASM-label mechanism.
@@ -40,10 +53,25 @@
 #define NO_OBJECT_SIZE_CHECKING
 #endif
 
+#ifdef OPENOSC_SKIP_CSTRING_HEADER
+#ifdef __cplusplus
+#if OPENOSC_MAPPING_METHOD == OPENOSC_FUNC_MACRO_REDEFINE_METHOD || defined OPENOSC_METRIC_ONLY_MODE
+/* define the below macro to avoid including <cstring> header, which #undef >10 memcpy/strcpy functions */
+#ifndef _GLIBCXX_CSTRING
+#define _GLIBCXX_CSTRING 2
+#endif
+#endif
+#endif
+#endif
+
+
 #ifdef NO_OBJECT_SIZE_CHECKING
 #pragma message ("OSC-WARN-DISABLED: OpenOSC disabled due to NO_OBJECT_SIZE_CHECKING, contact OpenOSC package owner for guidance")
 #elif defined __ASSEMBLER__
 #pragma message ("OSC-WARN-ASM: OpenOSC disabled due to __ASSEMBLER__, contact OpenOSC package owner for guidance")
+#elif defined OPENOSC_METRIC_ONLY_MODE
+#pragma message ("OSC-WARN-METRICONLY: OpenOSC disabled due to METRIC_ONLY_MODE, contact OpenOSC package owner for guidance")
+#include "openosc_metric_only.h"
 #elif !defined  __OPTIMIZE__
 /* #error "OSC-ERR-NOOPT: OpenOSC disabled due to NO OPTIMIZATION, contact OpenOSC package owner for guidance" */
 #pragma message ("OSC-ERR-NOOPT: OpenOSC disabled due to NO OPTIMIZATION, contact OpenOSC package owner for guidance")
@@ -147,10 +175,6 @@
  * Please contact csdl-rtd-dev@cisco.com for any questions regarding these settings
  **********************************************************************************
  **********************************************************************************/
-
-/* define the object size checking type in builtin function */
-#define OSC_OBJECT_SIZE_CHECK_0 0
-#define OSC_OBJECT_SIZE_CHECK_1 1
 
 #include "openosc_map.h"
 

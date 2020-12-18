@@ -738,6 +738,20 @@ int openosc_test_vprintf(void) {
 }
 
 
+int openosc_test_vsnprintf(void) {
+    int mylen = 8;
+    char mydstbuf[15 * sizeof(char)];
+    char **pmydstbuf = (char **)(&mydstbuf);
+    const char mysrcbuf[20] = "I am the source";
+    const char **pmysrcbuf = (const char **)(&mysrcbuf);
+    va_list myap;
+    printf("Line %d, func %s, mylen is: %d\n", __LINE__, __FUNCTION__, mylen);
+    vsnprintf((char *) mydstbuf , mylen, " ", myap);          /* function invocation */
+    printf("End of testing vsnprintf\n");
+    return 0;
+}
+
+
 int openosc_test_vsprintf(void) {
     int mylen = 8;
     char mydstbuf[15 * sizeof(char)];

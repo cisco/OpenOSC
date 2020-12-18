@@ -10,18 +10,6 @@
 #ifndef __OPENOSC_MAP_METRIC_H__
 #define __OPENOSC_MAP_METRIC_H__
 
-#ifdef OPENOSC_HEADER_METRIC_FEATURE_ENABLED
-
-/* always insert a magic word if osc_map.h is included */
-#if defined __BIG_ENDIAN__ || defined __BIG_ENDIAN || (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-#define MAGIC_OSC_MAP_H_INCLUDED 0x80818d8f80818d8e
-#else
-#define MAGIC_OSC_MAP_H_INCLUDED 0x8e8d81808f8d8180
-#endif
-long long int __attribute__((weak)) rtd_osc_map_h_included_int = MAGIC_OSC_MAP_H_INCLUDED;
-
-#endif /* OPENOSC_HEADER_METRIC_FEATURE_ENABLED */
-
 #ifdef OPENOSC_METRIC_FEATURE_ENABLED
 
 #include "openosc_metric_objsize.h"

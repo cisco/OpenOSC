@@ -706,6 +706,8 @@ __clang_warn_or_error_if(__size_too_small (__bos1, name, len), __dst_overflow_ms
 }
 
 
+#ifndef OPENOSC_GETS_DISABLE
+
 /* Mapping for gets */
 
 extern char *
@@ -726,6 +728,8 @@ gets (char * __pass_objsize1 s)
             : (GETS_CASE4 __openosc_gets_alias(s)));
 #endif
 }
+
+#endif /* OPENOSC_GETS_DISABLE */
 
 
 /* Mapping for getwd */

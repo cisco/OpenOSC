@@ -38,6 +38,12 @@ long long int __attribute__((weak)) rtd_osc_nomap_h_included_int = MAGIC_OSC_NOM
 #else
 #define MAGIC_OSC_NOMAP_H_REASON 0x038d81808e8d8180
 #endif
+#elif defined OPENOSC_METRIC_ONLY_MODE
+#if defined __BIG_ENDIAN__ || defined __BIG_ENDIAN || (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define MAGIC_OSC_NOMAP_H_REASON 0x80818d8e80818d06
+#else
+#define MAGIC_OSC_NOMAP_H_REASON 0x068d81808e8d8180
+#endif
 #elif defined OSC_ASM
 #if defined __BIG_ENDIAN__ || defined __BIG_ENDIAN || (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define MAGIC_OSC_NOMAP_H_REASON 0x80818d8e80818d04

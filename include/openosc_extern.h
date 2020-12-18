@@ -20,10 +20,12 @@
 typedef __builtin_va_list va_list;
 #endif
 
+#ifndef OSC_THROW
 #ifdef __cplusplus
 #define OSC_THROW __THROW
 #else
 #define OSC_THROW
+#endif
 #endif
 
 /* libC APIs */

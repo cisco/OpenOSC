@@ -7,6 +7,7 @@ Table of Contents
 * [Overview](#Overview)
 * [Design Considerations](#Design-Considerations)
 * [Relationship to FORTIFY_SOURCE](#Relationship-to-FORTIFY_SOURCE)
+* [Metric-only Mode for FORTIFY_SOURCE](#Metric-only-Mode-for-FORTIFY_SOURCE)
 * [How to Build OpenOSC Library](#How-to-Build-OpenOSC-Library)
 * [How to Build Packages with OpenOSC Library](#How-to-Build-Packages-with-OpenOSC-Library)
 * [Tested Platforms](#Tested-Platforms)
@@ -177,6 +178,68 @@ Here is a comparison summary table:
 | Logging           | No syslog      | Syslog/Configurable |
 | Cover new routine | Not easy       | Easy                |
 
+Metric-only Mode for FORTIFY_SOURCE
+------------------------------
+The OpenOSC OSC-METRICS feature has been enhanced to work with FORTIFY_SOURCE
+feature enabled.
+
+It is enabled by adding `-DOPENOSC_METRIC_ONLY_MODE` option to CFLAGS.
+
+    CFLAGS += "-include openosc.h -DOPENOSC_METRIC_ONLY_MODE -D_FORTIFY_SOURCE=2"
+
+This does not turn on OSC-METRICS for objsize/copylen. If you want it, add the
+OPENOSC_METRIC_OBJSIZE_ENABLED flag.
+
+    CFLAGS += "-include openosc.h -DOPENOSC_METRIC_ONLY_MODE -DOPENOSC_METRIC_OBJSIZE_ENABLED -D_FORTIFY_SOURCE=2"
+
+This will generate the same OSC-METRICS watermarks for the compiled binary
+file with the OPENOSC_METRIC_FEATURE_ENABLED flag. And you can use the same
+tools/oscmetrics.py script to decode the OSC-METRICS watermarks.
+
+With this OPENOSC_METRIC_ONLY_MODE flag, the memory/string functions will
+always be mapped to itself, except for the addition of OSC-METRICS. The
+generated assembly/binary code should also be the same as before, except for
+the addition of OSC-METRICS. Of course, out-of-order generation of some assembly
+instructions are expected, and still considered the same code.
+
+The nice thing about this metric-only mode is that you don't need to build the
+libopenosc.so library. You don't need to change your linking LDFLAGS, since you
+don't link with any additional library. The only change required is CFLAGS.
+
+Note this Metric-only mode also works without FORTIFY_SOURCE feature. It will
+map all functions to themselves, except for the addition of OSC-METRICS. There
+is no need to change LDFLAGS and no need to build the libopenosc.so library.
+
+    CFLAGS += "-include openosc.h -DOPENOSC_METRIC_ONLY_MODE -U_FORTIFY_SOURCE"
+
+There are multiple flags to control the set of memory/string functions to
+cover. For example, defining OPENOSC_DISABLE_SOCKET_H_FUNCS will not cover
+all functions declared in the sys/socket.h header file, and defining the
+OPENOSC_DISABLE_STDIO_H_FUNCS flag will not cover all functions in the stdio.h
+header file. Defining OPENOSC_POLL_DISABLE will not cover the poll function.
+
+You can also control the level of OSC-METRICS details. For example, you
+can define OPENOSC_NOMAP_METRIC_ONLY to always map all functions to CASE0,
+i.e., the NOMAP case, instead of more detailed CASE1/CASE2/CASE3/CASE4,
+which correnspond to Safe/Overflow/Runtime-protection/Unknown cases,
+respectively. This can help quickly find the occurrences of all function
+invocations in your code. By default, source buffer overread feature is ON,
+but you can define the OPENOSC_SRC_OVERREAD_DISABLE flag to turn if off.
+
+One disadvantage of this Metric-only mode is: it can suppress some
+compile-time warning messages that are defined by function attributes
+of the OpenOSC covered functions, for example, the warn-unused-result
+or nonnull function attribute.
+
+The clang compiler seems to implement its fortify-source buffer-overflow warning
+messages with function attributes, thus the buffer-overflow warnings messages
+are also suppressed with the Metric-only mode in clang. If clang can also check
+the warning condition in the optimization phase, in addition to the front-end
+(pre-optimization phase), then this issue can be fixed.
+
+The gcc and icc compiler have no such issue, and are able to report compile-time
+buffer-overflow warning messages, with Metric-only mode.
+
 How to Build OpenOSC Library
 ----------------------------
 The build system for the OpenOSC library is the well known GNU build system,
@@ -318,6 +381,11 @@ Known Issues
 2. OPENOSC_METRIC_FEATURE_ENABLED does not impact compilation performance.
 However, OPENOSC_METRIC_OBJSIZE_ENABLED impacts the compilation performance
 significantly, especially for Clang.
+
+3. OPENOSC_METRIC_ONLY_MODE suppresses some compile-time warning messages that
+are implemented by function attributes of the covered functions, like
+-Wunused-result. Fortify-source buffer-overflow warnings are suppressed for
+clang, but not for gcc/icc.
 
 References
 ----------

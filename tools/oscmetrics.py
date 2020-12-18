@@ -70,6 +70,7 @@ loc_all_magics = {
         '80818d8e80818d03': 'MAGIC_OSC_NOMAP_H_REASON_FORTIFY_SOURCE',
         '80818d8e80818d04': 'MAGIC_OSC_NOMAP_H_REASON_ASM',
         '80818d8e80818d05': 'MAGIC_OSC_NOMAP_H_REASON_STRICT_ANSI',
+        '80818d8e80818d06': 'MAGIC_OSC_NOMAP_H_REASON_METRIC_ONLY',
         '97cfa25a9fb39d01': 'MAGIC_OSC_COMPILER_ICC',
         '97cfa25a9fb39d02': 'MAGIC_OSC_COMPILER_CLANG',
         '97cfa25a9fb39d03': 'MAGIC_OSC_COMPILER_GCC',
@@ -1085,6 +1086,7 @@ magic_types = {
     'MAGIC_OSC_NOMAP_H_REASON_FORTIFY_SOURCE' : 'nomap_reason_fortify_source',
     'MAGIC_OSC_NOMAP_H_REASON_ASM' : 'nomap_reason_asm',
     'MAGIC_OSC_NOMAP_H_REASON_STRICT_ANSI' : 'nomap_reason_strict_ansi',
+    'MAGIC_OSC_NOMAP_H_REASON_METRIC_ONLY' : 'nomap_reason_metric_only',
     'MAGIC_OSC_HEADER_INCLUDED': 'osc_header_included',
     'MAGIC_OSC_COMPILER_ICC': 'osc_compiler_icc',
     'MAGIC_OSC_COMPILER_CLANG': 'osc_compiler_clang',
@@ -1114,6 +1116,7 @@ water_all_magics = {
         '80818d8e80818d03': 'MAGIC_OSC_NOMAP_H_REASON_FORTIFY_SOURCE',
         '80818d8e80818d04': 'MAGIC_OSC_NOMAP_H_REASON_ASM',
         '80818d8e80818d05': 'MAGIC_OSC_NOMAP_H_REASON_STRICT_ANSI',
+        '80818d8e80818d06': 'MAGIC_OSC_NOMAP_H_REASON_METRIC_ONLY',
         '97cfa25a9fb39d01': 'MAGIC_OSC_COMPILER_ICC',
         '97cfa25a9fb39d02': 'MAGIC_OSC_COMPILER_CLANG',
         '97cfa25a9fb39d03': 'MAGIC_OSC_COMPILER_GCC',
@@ -1964,8 +1967,14 @@ def get_func_srcline_from_addr2line_decode_line_pretty(line):
     line = line.strip()
     tokens = line.split()
     if "(inlined by) " in line and len(tokens) > 4:
+        tokens2 = line.split(" at ")
+        if len(tokens2) > 1:
+            return (tokens[2], tokens2[1])
         return (tokens[2], tokens[4])
     elif len(tokens) > 2:
+        tokens2 = line.split(" at ")
+        if len(tokens2) > 1:
+            return (tokens[0], tokens2[1])
         return (tokens[0], tokens[2])
     if len(tokens) > 1:
         return (tokens[0], tokens[1])
@@ -1994,7 +2003,10 @@ def pick_addr2line_decode_entry(lines):
     if len(lines) > 2:
         for line in lines:
             if "(inlined by) " in line:
-                return get_func_srcline_from_addr2line_decode_line_pretty(line)
+                (func, srcline) = get_func_srcline_from_addr2line_decode_line_pretty(line)
+                tokens = srcline.split(":")
+                if tokens[0][-2:].lower() != '.h':
+                    return (func, srcline)
     if len(lines) > 0:
         return get_func_srcline_from_addr2line_decode_line_pretty(lines[-1])
     return (func, srcline)
@@ -2057,7 +2069,8 @@ def get_addr2line_info(afile, pc):
     lines = output.splitlines()
     (func, srcline) = pick_addr2line_decode_entry(lines)
     #(func, srcline) = pick_addr2line_decode_entry_nopretty(lines)
-    return (output, func, srcline)
+    return (cmd, lines, func, srcline)
+    #return (cmd, output, func, srcline)
 
 
 def get_text_section_info(afile):
@@ -2217,7 +2230,7 @@ def scan_text_section_from_file(afile, magics):
         hex_pc = hex(pc)
         verbose("offset: " + str(i//2) + " magic: " + word + " vma: " + hex(vma) + " pc: " + hex_pc + " " + str(match), LEVEL_1)
         i += 16
-        (output, srcfunc, srcline) = get_addr2line_info(afile, hex_pc)
+        (cmd, output, srcfunc, srcline) = get_addr2line_info(afile, hex_pc)
         d = dict()
         d['PC'] = hex_pc
         d['offset'] = i//2
@@ -2228,6 +2241,8 @@ def scan_text_section_from_file(afile, magics):
         #d['addr2line_cmd'] = 'addr2line -f -i -e ' + cmd_quote(os.path.basename(afile)) + ' ' + hex_pc
         d['srcfunc'] = srcfunc
         d['srcline'] = srcline
+        d['addr2line_cmd'] = cmd
+        d['addr2line_output'] = output
         # try to see if __builtin_object_size of dst buffer is embedded too
         dst_objsize_hexstr = get_dst_len_objsize(text[i:i+96])
         d['dstsize_hexstr'] = dst_objsize_hexstr
@@ -2433,7 +2448,7 @@ def print_watermarkpc_summary_table(rdict, wsdirs=[]):
                 row_list.append(" NOTFOUND")
             #row_list.append(pc_entry['dstsize_hexstr'])
             if run_addr2line:
-                (output, srcfunc, srcline) = get_addr2line_info(match, pc_entry['PC'])
+                (cmd, output, srcfunc, srcline) = get_addr2line_info(match, pc_entry['PC'])
                 row_list.append(' ' + srcfunc)
                 row_list.append(' ' + srcline)
             else:
@@ -3382,7 +3397,7 @@ def scan_debug_lines_from_file(afile, magics):
                 stack.append(line)
             continue
         hex_pc = pc
-        (output, srcfunc, srcline) = get_addr2line_info(afile, hex_pc)
+        (cmd, output, srcfunc, srcline) = get_addr2line_info(afile, hex_pc)
         d = dict()
         d['PC'] = hex_pc
         d['magic'] = line
@@ -3390,6 +3405,8 @@ def scan_debug_lines_from_file(afile, magics):
         d['caseno'] = match[1]
         d['srcfunc'] = srcfunc
         d['srcline'] = srcline
+        d['addr2line_cmd'] = cmd
+        d['addr2line_output'] = output
         d['offset'] = 0
         magic_list.append(d)
         prev_pc = pc

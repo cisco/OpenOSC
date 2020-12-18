@@ -1099,6 +1099,8 @@ openosc_gethostname (char *name, size_t len)
 #define gethostname(name, len)		openosc_gethostname(name, len)
 
 
+#ifndef OPENOSC_GETS_DISABLE
+
 #ifndef __cplusplus
 /* Mapping for gets */
 
@@ -1122,6 +1124,8 @@ openosc_gets (char *s)
 #undef gets
 #define gets(s)		openosc_gets(s)
 #endif /* __cplusplus */
+
+#endif /* OPENOSC_GETS_DISABLE */
 
 
 /* Mapping for getwd */

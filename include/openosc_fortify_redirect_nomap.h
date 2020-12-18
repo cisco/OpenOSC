@@ -276,6 +276,8 @@ __NTH (gethostname(char *name, size_t len))
 }
 
 
+#ifndef OPENOSC_GETS_DISABLE
+
 /* Mapping for gets */
 
 extern char * __REDIRECT (__openosc_gets_alias,
@@ -286,6 +288,8 @@ gets(char *s)
 {
     return (GETS_NOMAP_CASE __openosc_gets_alias(s));
 }
+
+#endif /* OPENOSC_GETS_DISABLE */
 
 
 /* Mapping for getwd */

@@ -25,9 +25,6 @@ extern "C"
 
 #include "openosc_extern.h"
 
-#ifndef NULL
-#define NULL ((void *)0)
-#endif
 
 /* Mapping for memcpy */
 

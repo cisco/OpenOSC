@@ -207,10 +207,6 @@
 #endif
 
 
-/* Source over-read is enabled by default, but can be disabled */
-#ifndef OPENOSC_SRC_OVERREAD_DISABLE
-#define _OPENOSC_SRC_OVERREAD_ENABLED
-#endif
 /* Errors are reported at compile-time unless you disable it explicitly */
 #ifndef OPENOSC_OVERFLOW_ERROR_OUT_DISABLE
 /* Do we want to error out at compile-time when detecting overflow/overread */
