@@ -153,11 +153,11 @@
 /*
  * Detect the compiler and select the best compile-time check method.
  */
-#if __ICC
+#if defined __ICC
 #define OSC_COMPILE_CHK OSC_ASSERT_USE_RUNTIME_CHK
-#elif __clang__
+#elif defined __clang__
 #define OSC_COMPILE_CHK OSC_ASSERT_USE_ERR_ATTR
-#elif __GNUC__
+#elif defined __GNUC__
 #define OSC_COMPILE_CHK OSC_ASSERT_USE_ERR_ATTR
 #else
 #error "Unsupported compiler detected, contact OpenOSC package owner for guidance"

@@ -143,7 +143,7 @@
 #if __GNUC_PREREQ (3,4)
 # define __attribute_warn_unused_result__ \
    __attribute__ ((__warn_unused_result__))
-# if __USE_FORTIFY_LEVEL > 0
+# if defined __USE_FORTIFY_LEVEL && __USE_FORTIFY_LEVEL > 0
 #  define __wur __attribute_warn_unused_result__
 # endif
 #else
@@ -217,10 +217,10 @@
 #define __dst_overflow_msg(func) func " caller with bigger length than size of destination buffer"
 #define __src_overread_msg(func) func " caller with bigger length than size of source buffer, will cause src overread"
 
-#define __OPENOSC_CLANG_CC  (__clang__ && __clang_major__ >= 5)
+#define __OPENOSC_CLANG_CC  (defined __clang__ && __clang_major__ >= 5)
 
 /* For clang compiler support */
-#if __clang__
+#if defined __clang__
 
 #define __bos0(ptr) __builtin_object_size (ptr, 0)
 #define __bos1(ptr) __builtin_object_size (ptr, 1)

@@ -56,13 +56,21 @@
  * inserted into production image by the compiler.
  */
 #if (OSC_COMPILE_CHK == OSC_ASSERT_USE_ERR_ATTR)
+extern int __attribute__((error("Compiler Assertion: memcmp_s n indexes beyond s1"))) \
+ osc_compile_check_memcmp_s1(void);
+#define OSC_ASSERT_memcmp_s1() ({osc_compile_check_memcmp_s1(), (errno_t)0;})
+
 extern int __attribute__((error("Compiler Assertion: memcmp_s s1max indexes beyond s1"))) \
- osc_compile_check_memcmp_s(void);
-#define OSC_ASSERT_memcmp_s() ({osc_compile_check_memcmp_s(), (errno_t)0;})
+ osc_compile_check_memcmp_s2(void);
+#define OSC_ASSERT_memcmp_s2() ({osc_compile_check_memcmp_s2(), (errno_t)0;})
+
+extern int __attribute__((error("Compiler Assertion: memcpy_s n indexes beyond dest"))) \
+ osc_compile_check_memcpy_s1(void);
+#define OSC_ASSERT_memcpy_s1() ({osc_compile_check_memcpy_s1(), (errno_t)0;})
 
 extern int __attribute__((error("Compiler Assertion: memcpy_s dmax could overflow dest"))) \
- osc_compile_check_memcpy_s(void);
-#define OSC_ASSERT_memcpy_s() ({osc_compile_check_memcpy_s(), (errno_t)0;})
+ osc_compile_check_memcpy_s2(void);
+#define OSC_ASSERT_memcpy_s2() ({osc_compile_check_memcpy_s2(), (errno_t)0;})
 
 extern int __attribute__((error("Compiler Assertion: strcat_s dmax could overflow dest"))) \
  osc_compile_check_strcat_s(void);
@@ -120,8 +128,10 @@ extern int __attribute__((error("Compiler Assertion: strstr_s s1max indexes beyo
  * For safeC, there is no compiler built-in check so if OSC_COMPILE_CHK is set
  * to OSC_ASSERT_USE_BUILTIN, just use the runtime check
  */
-#define OSC_ASSERT_memcmp_s() (__openosc_memcmp_s_to_buf(_sz, s1, s1max, s2, n, diff))
-#define OSC_ASSERT_memcpy_s() (__openosc_memcpy_s_to_buf(_sz, dest, dmax, src, n))
+#define OSC_ASSERT_memcmp_s1() (__openosc_memcmp_s_to_buf(_sz, s1, s1max, s2, n, diff))
+#define OSC_ASSERT_memcmp_s2() (__openosc_memcmp_s_to_buf(_sz, s1, s1max, s2, n, diff))
+#define OSC_ASSERT_memcpy_s1() (__openosc_memcpy_s_to_buf(_sz, dest, dmax, src, n))
+#define OSC_ASSERT_memcpy_s2() (__openosc_memcpy_s_to_buf(_sz, dest, dmax, src, n))
 #define OSC_ASSERT_strcat_s() (__openosc_strcat_s_to_buf(_sz, dest, dmax, src))
 #define OSC_ASSERT_strcmp_s() (__openosc_strcmp_s_to_buf(_sz, s1, s1max, s2, indicator))
 #define OSC_ASSERT_strcpy_s() (__openosc_strcpy_s_to_buf(_sz, dest, dmax, src))
@@ -137,8 +147,10 @@ extern int __attribute__((error("Compiler Assertion: strstr_s s1max indexes beyo
 #define OSC_ASSERT_strstr_s() (__openosc_strstr_s_to_buf(_sz, s1, s1max, s2, s2max, substring))
 #elif (OSC_COMPILE_CHK == OSC_ASSERT_USE_NONE)
 /* No compile time check, use original libc/safec function */
-#define OSC_ASSERT_memcmp_s()   (memcmp_s(s1, s1max, s2, n, diff))
-#define OSC_ASSERT_memcpy_s()   (memcpy_s(dest, dmax, src, n))
+#define OSC_ASSERT_memcmp_s1()   (memcmp_s(s1, s1max, s2, n, diff))
+#define OSC_ASSERT_memcmp_s2()   (memcmp_s(s1, s1max, s2, n, diff))
+#define OSC_ASSERT_memcpy_s1()   (memcpy_s(dest, dmax, src, n))
+#define OSC_ASSERT_memcpy_s2()   (memcpy_s(dest, dmax, src, n))
 #define OSC_ASSERT_strcat_s()   (strcat_s(dest, dmax, src))
 #define OSC_ASSERT_strcmp_s()   (strcmp_s(s1, s1max, s2, indicator))
 #define OSC_ASSERT_strcpy_s()   (strcpy_s(dest, dmax, src))
@@ -165,23 +177,28 @@ __openosc_memcmp_s_to_buf (size_t s1_len,
                    const void *s2,  rsize_t n, int *diff);
 
 static inline __attribute__ ((always_inline)) errno_t
-osc_memcmp_s (const void *s1, rsize_t s1max,
+openosc_memcmp_s (const void *s1, rsize_t s1max,
 	      const void *s2,  rsize_t n, int *diff)
 {
     size_t _sz = __builtin_object_size(s1, OSC_OBJECT_SIZE_CHECK_0);
     int is_s1max_constant = __builtin_constant_p(s1max);
+    int is_n_constant = __builtin_constant_p(n);
     return ((_sz != (size_t) -1)
 	    ? (is_s1max_constant
 	       ? ((_sz >= s1max)
-		  ? (MEMCMP_S_CASE1 memcmp_s(s1, s1max, s2, n, diff))
-		  : (MEMCMP_S_CASE2 OSC_ASSERT_memcmp_s()))
+		  ? (is_n_constant
+		     ? ((_sz >= n)
+			? (MEMCMP_S_CASE1 memcmp_s(s1, s1max, s2, n, diff))
+			: (MEMCMP_S_CASE2 OSC_ASSERT_memcmp_s1()))
+		     : (MEMCMP_S_CASE3 OSC_RUNTIME_CHECK_memcmp_s()))
+		  : (MEMCMP_S_CASE2 OSC_ASSERT_memcmp_s2()))
 	       : (MEMCMP_S_CASE3 OSC_RUNTIME_CHECK_memcmp_s()))
 	    : (MEMCMP_S_CASE4 memcmp_s(s1, s1max, s2, n, diff)));
 }
 
 #undef memcmp_s
 #define memcmp_s(s1, s1max, s2, n, diff) \
-    osc_memcmp_s (s1, s1max, s2, n, diff)
+    openosc_memcmp_s (s1, s1max, s2, n, diff)
 
 /* Mapping for memcpy_s */
 
@@ -194,11 +211,16 @@ openosc_memcpy_s (void *dest, rsize_t dmax, const void *src, rsize_t n)
 {
     size_t _sz = __builtin_object_size(dest, OSC_OBJECT_SIZE_CHECK_0);
     int is_dmax_constant = __builtin_constant_p(dmax);
+    int is_n_constant = __builtin_constant_p(n);
     return ((_sz != (size_t) -1)
 	    ? (is_dmax_constant
 	       ? ((_sz >= dmax)
-		  ? (MEMCPY_S_CASE1 memcpy_s(dest, dmax, src, n))
-		  : (MEMCPY_S_CASE2 OSC_ASSERT_memcpy_s()))
+		  ? (is_n_constant
+		     ? ((_sz >= n)
+			? (MEMCPY_S_CASE1 memcpy_s(dest, dmax, src, n))
+			: (MEMCPY_S_CASE2 OSC_ASSERT_memcpy_s1()))
+		     : (MEMCPY_S_CASE3 OSC_RUNTIME_CHECK_memcpy_s()))
+		  : (MEMCPY_S_CASE2 OSC_ASSERT_memcpy_s2()))
 	       : (MEMCPY_S_CASE3 OSC_RUNTIME_CHECK_memcpy_s()))
 	    : (MEMCPY_S_CASE4 memcpy_s(dest, dmax, src, n)));
 }

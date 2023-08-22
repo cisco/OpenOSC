@@ -20,7 +20,7 @@
 #endif
 
 #ifdef _FORTIFY_SOURCE
-#if __clang__
+#if defined __clang__
 #warning "The OSC-METRICS feature suppresses fortify-source buffer-overflow warnings for clang"
 #else
 #warning "The OSC-METRICS feature suppresses some function-attribute warnings, like -Wunused-result/-Wnonnull"

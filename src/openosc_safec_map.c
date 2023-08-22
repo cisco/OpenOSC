@@ -29,7 +29,7 @@ __openosc_memcmp_s_to_buf (size_t s1_len,
 
     if (s1max > s1_len) {
 	if (openosc_log) {
-	    openosc_danger_error("memcmp_s", s1_len, s1max);
+	    openosc_danger_error("memcmp_s s1max", s1_len, s1max);
         }
 	openosc_get_config(&openosc_abort);
 	if (openosc_abort) {
@@ -37,6 +37,18 @@ __openosc_memcmp_s_to_buf (size_t s1_len,
 	}
 	if (openosc_truncate) {
             s1max = s1_len;
+        }
+    }
+    if (n > s1_len) {
+	if (openosc_log) {
+	    openosc_danger_error("memcmp_s n", s1_len, n);
+        }
+	openosc_get_config(&openosc_abort);
+	if (openosc_abort) {
+            abort();
+	}
+	if (openosc_truncate) {
+            n = s1_len;
         }
     }
 #undef memcmp_s
@@ -53,7 +65,7 @@ __openosc_memcpy_s_to_buf (size_t dest_len,
 
     if (dmax > dest_len) {
 	if (openosc_log) {
-	    openosc_danger_error("memcpy_s", dest_len, dmax);
+	    openosc_danger_error("memcpy_s dmax", dest_len, dmax);
         }
 	openosc_get_config(&openosc_abort);
 	if (openosc_abort) {
@@ -61,6 +73,18 @@ __openosc_memcpy_s_to_buf (size_t dest_len,
 	}
 	if (openosc_truncate) {
             dmax = dest_len;
+        }
+    }
+    if (n > dest_len) {
+	if (openosc_log) {
+	    openosc_danger_error("memcpy_s n", dest_len, dmax);
+        }
+	openosc_get_config(&openosc_abort);
+	if (openosc_abort) {
+            abort();
+	}
+	if (openosc_truncate) {
+            n = dest_len;
         }
     }
 #undef memcpy_s

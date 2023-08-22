@@ -2457,6 +2457,24 @@ def print_watermarkpc_summary_table(rdict, wsdirs=[]):
             print (print_row(fmts, row_list))
 
 
+def find_specific_unstripped_file(builddir, filename):
+    """
+    Find all files with a specific filename in the build dir, excluding symbolic link files.
+    Also only those unstripped ELF files are returned, used for addr2line.
+
+    It simply runs the shell's find command and saves the result.
+
+    :param builddir: String, build dir of the workspace
+    :param filename: String, a specific filename, like libosc.so/lib4arg.so
+    :returns a list that contains all the binary file names.
+    """
+    findcmd = "find " + cmd_quote(builddir) + " -type f -name " + cmd_quote(filename)
+    findcmd += " -exec sh -c 'file  \"$1\" | grep -E \" ELF.*shared object.*not stripped| ELF.*executable.*not stripped\"  >/dev/null ' _ {} \; -print  || true"
+    output = subprocess.check_output(findcmd, shell=True, universal_newlines=True)
+    files = output.splitlines()
+    return files
+
+
 def find_specific_file(builddir, filename):
     """
     Find all files with a specific filename in the build dir, excluding symbolic link files.
@@ -3274,7 +3292,7 @@ def parse_dwarf_decoded_lines(lines):
     ret = []
     for line in lines:
         tokens = line.split()
-        if len(tokens) != 3:
+        if len(tokens) < 3: # must have at least 3 tokens
             continue
         pc = tokens[2]
         srcline = tokens[1]

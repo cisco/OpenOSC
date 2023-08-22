@@ -1061,7 +1061,7 @@ __clang_warn_or_error_if(__size_too_small (__bos0, buf, count), __dst_overflow_m
 
 /* Mapping for readlinkat */
 
-extern int 
+extern ssize_t
 __openosc_readlinkat_to_buf(size_t dest_len, int dirfd, const char *pathname, char *buf, size_t bufsiz);
 extern ssize_t  __REDIRECT_NTH (__openosc_readlinkat_alias,
                               (int dirfd, const char *pathname, char *buf, size_t bufsiz), readlinkat);

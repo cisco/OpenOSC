@@ -118,19 +118,19 @@ long long int __attribute__((weak)) rtd_osc_header_h_included_int = MAGIC_OSC_HE
 
 #ifdef OPENOSC_METRIC_USEFUL_INFO
 
-#if __ICC
+#if defined __ICC
 #if defined __BIG_ENDIAN__ || defined __BIG_ENDIAN || (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define MAGIC_OSC_COMPILER 0x97cfa25a9fb39d01
 #else
 #define MAGIC_OSC_COMPILER 0x019db39f5aa2cf97
 #endif
-#elif __clang__
+#elif defined __clang__
 #if defined __BIG_ENDIAN__ || defined __BIG_ENDIAN || (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define MAGIC_OSC_COMPILER 0x97cfa25a9fb39d02
 #else
 #define MAGIC_OSC_COMPILER 0x029db39f5aa2cf97
 #endif
-#elif __GNUC__
+#elif defined __GNUC__
 #if defined __BIG_ENDIAN__ || defined __BIG_ENDIAN || (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
 #define MAGIC_OSC_COMPILER 0x97cfa25a9fb39d03
 #else
