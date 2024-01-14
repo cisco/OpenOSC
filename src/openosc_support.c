@@ -47,7 +47,6 @@ openosc_get_process_name(char *name, int name_len)
 {
     char path[OSC_PROC_PATH_MAX];
     FILE* fd;
-    size_t size;
 
     if (!name)
 	return FALSE;
@@ -55,10 +54,9 @@ openosc_get_process_name(char *name, int name_len)
     snprintf(path, OSC_PROC_PATH_MAX, "/proc/%d/cmdline", getpid());
     fd = fopen(path, "r");
     if (fd != NULL) {
-        size = fread((void *)name, sizeof(char), name_len, fd);
+        size_t size = fread((void *)name, sizeof(char), name_len, fd);
 	if (size > 0) {
-	    if('\n' == name[size-1])
-		name[size-1]='\0';
+	    name[size-1]='\0';
 	}
 	fclose(fd);
         return TRUE;
@@ -129,14 +127,14 @@ openosc_bt2str_offset (void *bt[], int frames, char *bt_str,
                  * If the symbol is in us, just print the offset
                  */
                 s += snprintf(&bt_str[s], (bt_str_max - s), "+%p ",
-			      (void *)(bt[f] - info.dli_fbase));
+			      (void *)((char *)bt[f] - (char *)info.dli_fbase));
             } else {
                 bname = basename(info.dli_fname);
                 /*
                  * Otherwise print library+offset
                  */
                 s += snprintf(&bt_str[s], (bt_str_max - s), "%s+%p ",
-                              bname, (void *)(bt[f] - info.dli_fbase));
+                              bname, (void *)((char *)bt[f] - (char *)info.dli_fbase));
 	    }
         }
     }

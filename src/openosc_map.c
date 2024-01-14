@@ -43,7 +43,7 @@ __openosc_memcpy_to_buf(size_t dest_len, size_t src_len, void *dst, const void *
 	    abort();
 	}
 	if (openosc_truncate) {
-	    if (dest_len <= 0) {
+	    if ((dest_len == (size_t) -1) || (dest_len == 0)) {
 	        len = src_len;
 	    } else {
 	        len = MIN(src_len, dest_len);
@@ -84,7 +84,7 @@ __openosc_memmove_to_buf(size_t dest_len, size_t src_len, void *dst, const void 
 	    abort();
 	}
 	if (openosc_truncate) {
-	    if (dest_len <= 0) {
+	    if ((dest_len == (size_t) -1) || (dest_len == 0)) {
 	        len = src_len;
 	    } else {
 	        len = MIN(src_len, dest_len);
@@ -148,7 +148,7 @@ __openosc_bcopy_to_buf(size_t dest_len, size_t src_len, const void *src, void *d
 	    abort();
 	}
 	if (openosc_truncate) {
-	    if (dest_len <= 0) {
+	    if ((dest_len == (size_t) -1) || (dest_len == 0)) {
 	        len = src_len;
 	    } else {
 	        len = MIN(src_len, dest_len);

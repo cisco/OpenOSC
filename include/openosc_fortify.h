@@ -217,7 +217,7 @@
 #define __dst_overflow_msg(func) func " caller with bigger length than size of destination buffer"
 #define __src_overread_msg(func) func " caller with bigger length than size of source buffer, will cause src overread"
 
-#define __OPENOSC_CLANG_CC  (defined __clang__ && __clang_major__ >= 5)
+#define __OPENOSC_CLANG_CC 0
 
 /* For clang compiler support */
 #if defined __clang__
@@ -238,6 +238,8 @@
 #define __pass_objsize1
 #define __openosc_fortify_function __fortify_function
 #else
+#undef __OPENOSC_CLANG_CC
+#define __OPENOSC_CLANG_CC 1
 #define __clang_error_if(c, m) __attribute__ ((__diagnose_if__ ((c), (m), "error")))
 #define __clang_warning_if(c, m) __attribute__ ((__diagnose_if__ ((c), (m), "warning")))
 #define __pass_objsize0 const __attribute__((pass_object_size(0)))
