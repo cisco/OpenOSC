@@ -30,6 +30,8 @@
 #define OPENOSC_PACKAGE_STR openosc_get_package_string()
 #define OPENOSC_VERSION openosc_get_package_version()
 
+int openlog_flag = 0;
+
 #ifdef OSC_FINAL
 /*
  * openosc_get_process_name
@@ -273,6 +275,10 @@ void openosc_danger_error (const char *func, size_t true_len, size_t len)
 {
     char *backtrace_str;
 
+    if (openlog_flag == 0) {
+        openlog("rtdm", LOG_PID | LOG_CONS | LOG_NDELAY, LOG_USER);
+        openlog_flag ++;
+    }
     /* Get backtrace string */
     if (openosc_get_backtrace(&backtrace_str) != TRUE) {
 	syslog(LOG_CRIT, "LIB-OPENOSC: Error getting backtrace\n");
