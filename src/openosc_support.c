@@ -30,7 +30,7 @@
 #define OPENOSC_PACKAGE_STR openosc_get_package_string()
 #define OPENOSC_VERSION openosc_get_package_version()
 
-int openlog_flag = 0;
+static int openlog_flag = 0;
 
 #ifdef OSC_FINAL
 /*

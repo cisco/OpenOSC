@@ -74,6 +74,5 @@ const char * openosc_get_package_string (void);
 const char * openosc_get_package_name (void);
 const char * openosc_get_package_version (void);
 extern void openosc_danger_error (const char *func, size_t true_len, size_t len);
-extern int openlog_flag;
 
 #endif /* _OPENOSC_COMMON_H_ */
