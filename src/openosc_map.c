@@ -204,7 +204,7 @@ __openosc_strcpy_to_buf (size_t dest_len, char *dst, const char *src)
 	    len = dest_len - 1;
 	}
     }
-#undef strcpy
+#undef strncpy
     rstr = strncpy(dst, src, len);
     *(rstr + len) = '\0';
     return (rstr);
@@ -263,7 +263,7 @@ __openosc_strcat_to_buf (size_t dest_len, char *dst, const char *src)
 	    len = dest_len - dst_len_to_null - 1;
 	}
     }
-#undef strcat
+#undef strncat
     rstr = strncat(dst, src, len);
     return (rstr);
 }
